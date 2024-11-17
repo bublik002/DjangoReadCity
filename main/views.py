@@ -10,6 +10,8 @@ from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.views.generic.base import TemplateView
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.viewsets import ModelViewSet
+
 from .forms import LoginUserForm, CreateUserForm
 from .add_scripts import Validation
 from django.shortcuts import redirect
@@ -19,16 +21,21 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 
-# Чтение и создание записей
-class BookApiCreateView(ListCreateAPIView):
+class BookViewSet(ModelViewSet):
     queryset = BooksModel.objects.all()
     serializer_class = BookSerializer
 
 
-# Обновление записей
-class BookApiUpdateView(UpdateAPIView):
-    queryset = BooksModel.objects.all()
-    serializer_class = BookSerializer
+# # Чтение и создание записей
+# class BookApiCreateView(ListCreateAPIView):
+#     queryset = BooksModel.objects.all()
+#     serializer_class = BookSerializer
+#
+#
+# # Обновление записей
+# class BookApiUpdateView(UpdateAPIView):
+#     queryset = BooksModel.objects.all()
+#     serializer_class = BookSerializer
 
 
 # Чтение и создание записей

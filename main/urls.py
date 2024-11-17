@@ -2,8 +2,12 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.views.decorators.cache import cache_page
 from .views import *
+from rest_framework import routers
 from django.conf.urls import handler404
 from django.contrib.auth.urls import *
+
+router = routers.SimpleRouter()
+router.register(r'book', BookViewSet)
 
 urlpatterns = [
     path('', HomePageView.as_view(template_name='main.html'), name='home'),
@@ -20,8 +24,9 @@ urlpatterns = [
     path('book/<slug:book>', BookView.as_view(), name='book'),
     path('search', SearchBookView.as_view(), name='search'),
 
-    path('api/v1/book_list', BookApiCreateView.as_view()),
-    path('api/v1/book_list/<int:pk>', BookApiUpdateView.as_view()),
+    # path('api/v1/book_list', BookApiCreateView.as_view()),
+    # path('api/v1/book_list/<int:pk>', BookApiUpdateView.as_view()),
+    path('api/v1/', include(router.urls)),
     path('api/v1/book_det/<int:pk>', BookAPIDetailView.as_view()),
 
     path('api/v1/cat_list', CategoryApiCreateView.as_view()),
