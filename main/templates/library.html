@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+
+    {% load static %}
+
+    {% include 'includes/settings.html' %}
+    <title>Книги</title>
+
+    <link rel="stylesheet" href="{% static 'css/library.css' %}">
+
+
+</head>
+<body>
+    {% include 'includes/menu.html' %}
+
+    <h1 style="margin-left:5vw; margin-top:3vw;">{{category}}</h1>
+    <div class="row books-cards"  style="margin-top:1vw">
+        {% for book in object_list %}
+        <div class="card col col-xl-3 col-lg-4 col-md-6 col-12 book-card">
+            <a href="/book/{{book.slug_title}}"  class="a-image-book">
+                <img src={{book.img}} class="card-img-top image-book">
+            </a>
+            <div class="card-body">
+                <div style="height:12vw">
+                    <h5 class="card-title text-danger">{{book.price}} ₽</h5>
+                    <a class="card-subtitle mb-2 name-book-a" href="/book/{{book.slug_title}}">{{book.title}}</a>
+                    <a class="cart-text text-secondary author-book-a" href="#">{{book.author}}</a>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="basket/{{book.slug_title}}" class="card-link btn btn-primary button-basket ">Купить</a>
+                    <a href="bookmark/{{book.slug_title}}" class="card-link btn btn-primary button-fav"><i
+                            class="bi bi-bookmarks"></i></a>
+                </div>
+            </div>
+
+        </div>
+        {% endfor %}
+
+
+    </div>
+
+    <div class="pog Indent">
+
+        {% if page_obj.has_previous %}
+
+            <a href="?page=1" class="a-page">
+                <span>1</span>
+            </a>
+            {% if page_obj.previous_page_number != 1 %}
+            <a class="a-page" href="?page={{ page_obj.previous_page_number}}">
+                <span>{{ page_obj.previous_page_number  }}</span>
+            </a>
+            {% endif %}
+
+        {% endif %}
+
+        <a href="?page={{page_obj.number}}" class="pag-act a-page">
+            <span>{{page_obj.number}}</span>
+        </a>
+
+
+
+        {% if page_obj.has_next %}
+
+            <a href="?page={{ page_obj.next_page_number }}" class="a-page">
+                <span>{{page_obj.next_page_number}}</span>
+                </a>
+
+
+
+            {% if page_obj.next_page_number != page_obj.paginator.num_pages %}
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="a-page">
+                <span>{{page_obj.paginator.num_pages}}</span>
+                </a>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    {% include 'includes/footer.html' %}
+</body>
