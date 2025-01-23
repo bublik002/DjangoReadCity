@@ -107,6 +107,7 @@
             {% endfor %}
         </div>
 
+        {% if not request.user.is_anonymous %}
         <h1 class="h-books">
             НЕДАВНО ПРОСМОТРЕННЫЕ
         </h1>
@@ -132,7 +133,7 @@
             {% endfor %}
         </div>
 
-
+        {% endif %}
     </div>
 
 

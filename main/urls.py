@@ -7,7 +7,7 @@ from django.conf.urls import handler404
 from django.contrib.auth.urls import *
 
 router = routers.SimpleRouter()
-router.register(r'book', BookViewSet)
+# router.register(r'book', BookViewSet)
 
 urlpatterns = [
     path('', HomePageView.as_view(template_name='main.html'), name='home'),
@@ -23,14 +23,23 @@ urlpatterns = [
     path('basket', BasketView.as_view(template_name='Basket.html'), name='bookmarks'),
     path('book/<slug:book>', BookView.as_view(), name='book'),
     path('search', SearchBookView.as_view(), name='search'),
+    path('api', HomePageView.as_view(template_name='drf_doc.html'), name='api'),
 
-    # path('api/v1/book_list', BookApiCreateView.as_view()),
-    # path('api/v1/book_list/<int:pk>', BookApiUpdateView.as_view()),
+    # path('api/v1/drf-auth/', include('rest_framework.urls')),
+    path('api/v1/auth/', include('djoser.urls')),
+    re_path(r'^auth/', include('djoser.urls.authtoken')),
+
+    path('api/v1/book_list/category/<str:cat>', BooksApiListCategoryView.as_view()),
+    path('api/v1/book_list/id/<int:id>', BooksApiListIDView.as_view()),
+    path('api/v1/book_list/', BooksApiListAllView.as_view()),
+
+    path('api/v1/book_destroy/<int:id>', BooksDestroyView.as_view()),
+
+    path('api/v1/book_update/<int:id>', BooksApiUpdateView.as_view()),
+
+    path('api/v1/book_create/', BooksCreateAPIView.as_view()),
+
     path('api/v1/', include(router.urls)),
-    path('api/v1/book_det/<int:pk>', BookAPIDetailView.as_view()),
 
-    path('api/v1/cat_list', CategoryApiCreateView.as_view()),
-    path('api/v1/cat_list/<int:pk>', CategoryApiUpdateView.as_view()),
-    path('api/v1/cat_det/<int:pk>', CategoryAPIDetailView.as_view()),
 ]
 

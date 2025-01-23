@@ -90,6 +90,8 @@ class BooksModel(models.Model):
     weight = models.IntegerField(blank=True, null=True)  # вес
     age_rest = models.IntegerField(blank=True, null=True)  # возрастные ограничения
 
+    creator = models.ForeignKey('User', on_delete=models.CASCADE)
+
     def save(self, *args, **kwargs):
         self.slug_title = slugify(self.title)
         super(BooksModel, self).save(*args, **kwargs)

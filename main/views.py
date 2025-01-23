@@ -1,6 +1,6 @@
 import random
 from django.core.paginator import Paginator
-from rest_framework import generics
+from rest_framework import generics, permissions
 from django.forms import model_to_dict
 from django.shortcuts import render
 from django.views.generic import FormView, ListView
@@ -9,9 +9,12 @@ from django.contrib.auth import logout
 from django.contrib.auth.views import LoginView
 from django.urls import reverse
 from django.views.generic.base import TemplateView
-from rest_framework.generics import ListCreateAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListCreateAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, \
+    DestroyAPIView, RetrieveAPIView, CreateAPIView
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
-
+from rest_framework.decorators import action
 from .forms import LoginUserForm, CreateUserForm
 from .add_scripts import Validation
 from django.shortcuts import redirect
@@ -19,47 +22,116 @@ from .models import *
 from .serializers import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from .permission import *
 
 
-class BookViewSet(ModelViewSet):
+class BookAPIListPagination(PageNumberPagination):
+    page_size = 5
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+# Чтение записей по котигории
+class BooksApiListCategoryView(ListAPIView):
+    queryset = BooksModel.objects.all()
+    serializer_class = BookSerializer
+    pagination_class = BookAPIListPagination
+
+    def get_queryset(self):
+        sub = self.kwargs['cat']
+        category = CategoryModel.objects.filter(sub_slugify1=sub)[0]
+        return BooksModel.objects.filter(category=category)
+
+
+# Чтение записей
+class BooksApiListAllView(ListAPIView):
+    queryset = BooksModel.objects.all()
+    serializer_class = BookSerializer
+    # permission_classes = (IsAuthenticated,)
+    pagination_class = BookAPIListPagination
+
+    def get_queryset(self):
+        return BooksModel.objects.all()
+
+
+# Чтение записи по ID
+class BooksApiListIDView(RetrieveAPIView):
     queryset = BooksModel.objects.all()
     serializer_class = BookSerializer
 
-
-# # Чтение и создание записей
-# class BookApiCreateView(ListCreateAPIView):
-#     queryset = BooksModel.objects.all()
-#     serializer_class = BookSerializer
-#
-#
-# # Обновление записей
-# class BookApiUpdateView(UpdateAPIView):
-#     queryset = BooksModel.objects.all()
-#     serializer_class = BookSerializer
+    def get_queryset(self):
+        id = self.kwargs['id']
+        if len(BooksModel.objects.filter(id_book=id)) == 0:
+            return Response({'error': "Objects does not exist"})
+        return BooksModel.objects.filter(id_book=id)
 
 
-# Чтение и создание записей
-class CategoryApiCreateView(ListCreateAPIView):
-    queryset = CategoryModel.objects.all()
-    serializer_class = CategorySerializer
-
-
-# Обновление записей
-class CategoryApiUpdateView(UpdateAPIView):
-    queryset = CategoryModel.objects.all()
-    serializer_class = CategorySerializer
-
-
-# Чтение, изменение и добавление отдельной записи (get, put, patch, delete)
-class BookAPIDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = BooksModel
+# Удаление записи
+class BooksDestroyView(DestroyAPIView):
+    queryset = BooksModel.objects.all()
     serializer_class = BookSerializer
+    permission_classes = (IsAdminUser,)
+
+    def delete(self, request, *args, **kwargs):
+        id = kwargs.get('id', None)
+        if not id:
+            return Response({'error': "method ID not allowed"})
+
+        try:
+            instance = BooksModel.objects.get(id_book=id)
+            if request.user == instance.creator or request.user.is_superuser:
+                instance.delete()
+
+            else:
+                return Response({'error': 'You do not have the right to delete this entry'})
+        except Exception:
+            return Response({'error': 'Objects does not exist'})
+
+        return Response({"post": f"Object {str(id)} is deleted"})
 
 
-# Чтение, изменение и добавление отдельной записи (get, put, patch, delete)
-class CategoryAPIDetailView(RetrieveUpdateDestroyAPIView):
-    queryset = CategoryModel
-    serializer_class = CategorySerializer
+# Обновление записи
+class BooksApiUpdateView(UpdateAPIView):
+    queryset = BooksModel.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = (IsAdminUser, )
+
+    def put(self, request, *args, **kwargs):
+        id = kwargs.get('id', None)
+        if not id:
+            return Response({'error': "method ID not allowed"})
+
+        try:
+            instance = BooksModel.objects.get(id_book=id)
+
+        except Exception:
+            return Response({'error': 'Objects does not exist'})
+
+        if request.user != instance.creator and not request.user.is_superuser:
+            return Response({'error': "you can't edit this entry"})
+
+        serializer = BookSerializer(data=request.data, instance=instance)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'post': serializer.data})
+
+
+# Создание записи
+class BooksCreateAPIView(CreateAPIView):
+    queryset = BooksModel.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = (IsAuthenticated,)
+
+# # ModelViewSet.list().retrieve().create().update().partial_update().destroy()
+# # Объединяет в себе ListCreateAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView и др
+# class BookViewSet(ModelViewSet):
+#     queryset = BooksModel.objects.all()
+#     serializer_class = BookSerializer
+#     permission_classes = (IsAdminOrReadOnly,)
+#
+#     def get_queryset(self):
+#         return BooksModel.objects.all()[:5]
+
 
 # class BookApiView(APIView):
 #     def get(self, requests):
@@ -72,20 +144,7 @@ class CategoryAPIDetailView(RetrieveUpdateDestroyAPIView):
 #         serializer.save()
 #         return Response({'post': serializer.data})
 #
-#     def put(self, request, *args, **kwargs):
-#         pk = kwargs.get('pk', None)
-#         if not pk:
-#             return Response({'error': "method PUT not allowed"})
-#
-#         try:
-#             instance = CategoryModel.objects.get(pk=pk)
-#         except Exception:
-#             return Response({'error': 'Objects does not exist'})
-#
-#         serializer = CategorySerializer(data=request.data, instance=instance)
-#         serializer.is_valid(raise_exception=True)
-#         serializer.save()
-#         return Response({'post': serializer.data})
+
 #
 #     def delete(self, request, *args, **kwargs):
 #         pk = kwargs.get('pk', None)
@@ -99,11 +158,6 @@ class CategoryAPIDetailView(RetrieveUpdateDestroyAPIView):
 #             return Response({'error': 'Objects does not exist'})
 #
 #         return Response({"post": f"Object {str(pk)} is deleted"})
-
-
-# class BookApiView(generics.ListAPIView):
-#     queryset = BooksModel.objects.all()
-#     serializer_class = BookSerializer
 
 
 def FillingModel(request):
@@ -294,6 +348,7 @@ class LibraryView(ListView):
     model = BooksModel
     template_name = "library.html"
     paginate_by = 16
+
     def get_queryset(self):
         category = CategoryModel.objects.filter(sub_slugify1=self.kwargs['book'])
 
@@ -416,9 +471,6 @@ class RegistrationView(FormView, MenuView):
         user.save()
 
         return super(RegistrationView, self).form_valid(form)
-
-
-
 
 
 def page_not_found_view(request, exception):

@@ -33,34 +33,35 @@ class CategorySerializer(serializers.ModelSerializer):
 #     category = serializers.CharField()
 
 
+'''
+class CategorySerializer(serializers.Serializer):
+    subcategory1 = serializers.CharField(max_length=100)
+    subcategory2 = serializers.CharField(max_length=100)
 
-# class CategorySerializer(serializers.Serializer):
-#     subcategory1 = serializers.CharField(max_length=100)
-#     subcategory2 = serializers.CharField(max_length=100)
-#
-#     def create(self, validated_data):
-#         return CategoryModel.objects.create(**validated_data)
-#
-#     def update(self, instance, validated_data):
-#         instance.subcategory1 = validated_data.get('subcategory1', instance.subcategory1)
-#         instance.subcategory2 = validated_data.get('subcategory1', instance.subcategory2)
-#
-#         instance.save()
-#         return instance
+    def create(self, validated_data):
+        return CategoryModel.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.subcategory1 = validated_data.get('subcategory1', instance.subcategory1)
+        instance.subcategory2 = validated_data.get('subcategory1', instance.subcategory2)
+
+        instance.save()
+        return instance
 
 
-# def encode():
-#     model = BookModel('11/22/63', 'Стивен Кинг')
-#     model_sr = BookSerializer(model)
-#     print(model_sr.data, model_sr, sep='\n')
-#
-#     json = JSONRenderer().render(model_sr.data)
-#     print(json)
-#
-#
-# def decode():
-#     stream = io.BytesIO(b'{"title":"11/22/63","author":"\xd0\xa1\xd1\x82\xd0\xb8\xd0\xb2\xd0\xb5\xd0\xbd \xd0\x9a\xd0\xb8\xd0\xbd\xd0\xb3"}')
-#     data = JSONParser().parse(stream)
-#     serializer = BookSerializer(data=data)
-#     serializer.is_valid()
-#     print(serializer.validated_data)
+def encode():
+    model = BookModel('11/22/63', 'Стивен Кинг')
+    model_sr = BookSerializer(model)
+    print(model_sr.data, model_sr, sep='\n')
+
+    json = JSONRenderer().render(model_sr.data)
+    print(json)
+
+
+def decode():
+    stream = io.BytesIO(b'{"title":"11/22/63","author":"\xd0\xa1\xd1\x82\xd0\xb8\xd0\xb2\xd0\xb5\xd0\xbd \xd0\x9a\xd0\xb8\xd0\xbd\xd0\xb3"}')
+    data = JSONParser().parse(stream)
+    serializer = BookSerializer(data=data)
+    serializer.is_valid()
+    print(serializer.validated_data)
+'''
