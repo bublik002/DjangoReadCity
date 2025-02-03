@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.views.generic.base import TemplateView
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, \
     DestroyAPIView, RetrieveAPIView, CreateAPIView
+
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
@@ -18,7 +19,7 @@ from rest_framework.decorators import action
 from .forms import LoginUserForm, CreateUserForm
 from .add_scripts import Validation
 from django.shortcuts import redirect
-from .models import *
+
 from .serializers import *
 from rest_framework.views import APIView
 from rest_framework.response import Response

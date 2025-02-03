@@ -100,7 +100,6 @@ class BooksModel(models.Model):
         return self.title
 
 
-
 # f4beKE9-Kaw sscorpionmuz969@gmail.com
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email'), unique=True)

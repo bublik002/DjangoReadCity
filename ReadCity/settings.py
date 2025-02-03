@@ -166,3 +166,4 @@ EMAIL_HOST = "smtp.yoursmtpserver.ru"
 EMAIL_PORT = 25
 EMAIL_HOST_USER = "user"
 EMAIL_HOST_PASSWORD = "pass"
+

@@ -1,7 +1,5 @@
 import re
-import json
-import django
-import sys
+
 
 def Validation(email, first_name, last_name, phone_number, password1, password2, data_entry):
 
