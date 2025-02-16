@@ -240,9 +240,15 @@ class HomePageView(ListView):
     model = BooksModel
 
     def get_queryset(self):
-        ran = random.randint(0, len(BooksModel.objects.all()) - 6)
-
-        return self.model.objects.all()[ran:ran + 6]
+        count_objects = len(BooksModel.objects.all())
+        if count_objects>5:
+            start = random.randint(0,  count_objects-6)
+            end = start+6
+        else:
+            start = 0
+            end = count_objects
+        # [ran: ran + 6]
+        return self.model.objects.all()[start:end]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

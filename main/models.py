@@ -44,6 +44,11 @@ class CategoryModel(models.Model):
     sub_slugify1 = models.CharField(blank=True, max_length=500)
     sub_slugify2 = models.CharField(blank=True, max_length=500)
 
+
+    class Meta:
+        app_label = 'main'
+
+
     def __str__(self):
         return f'({self.subcategory1}) ({self.subcategory2})'
 
