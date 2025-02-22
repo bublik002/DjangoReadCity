@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
     {% load static %}
-
+    {% load i18n %}
     {% include 'includes/settings.html' %}
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <title>Читай-город  — интернет-магазин книг </title>
+    <title>{% trans "Читай-город  — интернет-магазин книг" %} </title>
 
 
 
@@ -13,7 +13,6 @@
 <body>
 
     {% include 'includes/menu.html' %}
-
 
     <div class="rec-header d-xl-flex justify-content-xl-around justify-content-lg-center Indent">
         <div id="carouselExampleIndicators"  class="carousel slide rec" data-bs-ride="carousel">
@@ -45,35 +44,39 @@
             </div>
             <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators"  data-bs-slide="prev">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Предыдущий</span>
+                <span class="visually-hidden">{% trans "Предыдущий" %}</span>
             </button>
             <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators"  data-bs-slide="next">
                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Следующий</span>
+                <span class="visually-hidden">{% trans "Следующий" %}</span>
             </button>
         </div>
         <div class="cards d-flex flex-xl-column justify-content-around align-content-between ">
             <div class="card card-rec" >
                 <div class="card-body">
-                    <h5 class="card-title"> Устроим обнима-а-а-шки? </h5>
-                    <p class="card-text"> С помощью заботливых книг</p>
+                    <h5 class="card-title">{% trans "Устроим обнима-а-а-шки?" %} </h5>
+                    <p class="card-text">{% trans "С помощью заботливых книг" %} </p>
                 </div>
                 <img class="img-card" src="https://cdn.img-gorod.ru/content/2024/07/21/72-72_1721594075220463165.svg">
             </div>
 
             <div class="card card-rec" >
                 <div class="card-body">
-                    <h5 class="card-title">Как сейчас выглядит Виктор Пелевин</h5>
-                    <p class="card-text">Версии нейросети</p>
+                    <h5 class="card-title">
+                        {% trans "Как сейчас выглядит Виктор Пелевин" %}
+                        </h5>
+                    <p class="card-text">{% trans "Версии нейросети"%}</p>
                 </div>
                 <img class="img-card" src="https://cdn.img-gorod.ru/content/2023/09/22/72-72_1695414849531393051.svg">
             </div>
             <div class="card card-rec" >
                 <div class="card-body">
                     <h5 class="card-title">
-                        Эксклюзивно в «Читай-городе»
+                        {% trans "Эксклюзивно в «Читай-городе»" %}
                     </h5>
-                    <p class="card-text">Невозможно пропустить!</p>
+                    <p class="card-text">
+                        {% trans "Невозможно пропустить!" %}
+                        </p>
                 </div>
                 <img class="img-card" src="https://cdn.img-gorod.ru/content/2023/06/07/72-72_1686139576168796980.svg">
             </div>
@@ -82,7 +85,8 @@
 
     <div class="books-container container-fluid" >
         <h1 class="h-books">
-            НОВИНКИ ЛИТЕРАТУРЫ
+            {% trans "НОВИНКИ ЛИТЕРАТУРЫ" %}
+
         </h1>
 
         <div class="row books-cards">
@@ -99,7 +103,9 @@
                         <a class="cart-text text-secondary author-book-a" href="#">{{book.author}}</a>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <a href="basket/{{book.slug_title}}" class="card-link btn btn-primary button-basket ">Купить</a>
+                        <a href="basket/{{book.slug_title}}" class="card-link btn btn-primary button-basket ">
+                            {% trans "Купить" %}
+                        </a>
                         <a href="bookmark/{{book.slug_title}}" class="card-link btn btn-primary button-fav"><i class="bi bi-bookmarks"></i></a>
                     </div>
                 </div>
@@ -109,7 +115,8 @@
 
         {% if not request.user.is_anonymous %}
         <h1 class="h-books">
-            НЕДАВНО ПРОСМОТРЕННЫЕ
+            {% trans "НЕДАВНО ПРОСМОТРЕННЫЕ" %}
+
         </h1>
         <div class="row books-cards">
             {% for book in viewed %}
@@ -119,15 +126,17 @@
                 </a>
 
                 <div class="card-body">
+
                     <div style="height:12vw">
                         <h5 class="card-title text-danger">{{book.price}} ₽</h5>
                         <a class="card-subtitle mb-2 name-book-a" href="/book/{{book.slug_title}}">{{book.title|truncatechars:50}}</a>
                         <a class="cart-text text-secondary author-book-a" href="#">{{book.author}}</a>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <a href="basket/{{book.slug_title}}" class="card-link btn btn-primary button-basket ">Купить</a>
+                        <a href="basket/{{book.slug_title}}" class="card-link btn btn-primary button-basket ">{% trans "Купить" %}</a>
                         <a href="bookmark/{{book.slug_title}}" class="card-link btn btn-primary button-fav"><i class="bi bi-bookmarks"></i></a>
                     </div>
+
                 </div>
             </div>
             {% endfor %}
@@ -138,15 +147,20 @@
 
 
     <div class="other">
-        <h2 class="h-other">ЧИТАЙ-ЖУРНАЛ</h2>
+        <h2 class="h-other">
+            {% trans "ЧИТАЙ-ЖУРНАЛ" %}
+            </h2>
         <div class="row other-cards">
             <div class="card col col-12 col-xl-4 col-lg-4">
                 <img class='card-img-top other-img' src="https://content.img-gorod.ru//content/uf/68/101/68101.png">
                 <div class="card-body">
                     <h3 class="card-title">
-                        Музыка нас связала: 8 книг, где главные герои занимаются музыкой
+                        {% trans "Музыка нас связала: 8 книг, где главные герои занимаются музыкой" %}
+
                     </h3>
-                    <p class="card-text"> Рок-группы, трубадуры и дирижёры
+                    <p class="card-text">
+                        {% trans "Рок-группы, трубадуры и дирижёры" %}
+
                     </p>
                 </div>
 
@@ -156,10 +170,13 @@
                 <img class='card-img-top other-img'
                      src="https://content.img-gorod.ru//content/uf/68/085/68085.png">
                 <div class="card-body">
-                    <h3 class="card-title"> Ворчливая лягушка и семья йети: 6 приключенческих комиксов, достойных
-                        экранизации
+                    <h3 class="card-title">
+                        {% trans "Ворчливая лягушка и семья йети: 6 приключенческих комиксов, достойных экранизации" %}
+
                     </h3>
-                    <p class="card-text"> Новые «Рик и Морти» и «Время приключений»?
+                    <p class="card-text">
+                        {% trans "Новые «Рик и Морти» и «Время приключений»?" %}
+
                     </p>
                 </div>
 
@@ -169,9 +186,12 @@
                 <img class='card-img-top other-img'
                      src="https://content.img-gorod.ru//content/uf/68/082/68082.png">
                 <div class="card-body">
-                    <h3 class="card-title"> Девушка-трудоголик и парень-домработница: о чём манхва «Её слуга»
+                    <h3 class="card-title">
+                        {% trans "Девушка-трудоголик и парень-домработница: о чём манхва «Её слуга»" %}
+
                     </h3>
-                    <p class="card-text"> Очень медленный слоубёрн из Кореи
+                    <p class="card-text">
+                        {% trans "Очень медленный слоубёрн из Кореи" %}
                     </p>
                 </div>
 

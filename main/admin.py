@@ -3,6 +3,15 @@ from .models import *
 from django.db.models import QuerySet
 from .models import *
 
+# from guardian.admin import *
+#
+#
+# class PostAdmin(GuardedModelAdmin):
+#     list_display = ["title", ]
+
+
+#
+
 
 class ReviewsAdmin(admin.ModelAdmin):
     list_display = ['id']
@@ -21,7 +30,7 @@ class UserAdmin(admin.ModelAdmin):
 
 
 admin.site.register(BooksModel, BooksAdmin)
-
+# admin.site.register(BooksModel, PostAdmin)
 admin.site.register(CategoryModel, CategoryAdmin)
 admin.site.register(ReviewsModel, ReviewsAdmin)
 admin.site.register(User, UserAdmin)

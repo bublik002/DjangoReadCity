@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.views.generic.base import TemplateView
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, \
     DestroyAPIView, RetrieveAPIView, CreateAPIView
-
+from django.utils.translation import gettext as _
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
@@ -280,11 +280,13 @@ class BookmarksView(ListView):
 
         numbers_products = len(self.get_user.bookmarks.all())
         if numbers_products == 1:
-            end_numbers_products = " товар"
+            end_numbers_products = _(" товар")
         elif (4 >= numbers_products % 10 >= 2) and not (10 < numbers_products < 20):
-            end_numbers_products = " товара"
+            end_numbers_products = _(" товара")
         else:
-            end_numbers_products = " товаров"
+            end_numbers_products = _(" товаров")
+
+        print(_("welcome"))
         context["num_books"] = str(numbers_products) + end_numbers_products
         return context
 
@@ -444,6 +446,9 @@ class BasketView(ListView):
             end_numbers_products = " товара"
         else:
             end_numbers_products = " товаров"
+
+        end_numbers_products = _(end_numbers_products)
+
         context["num_books"] = str(numbers_products) + end_numbers_products
         return context
 

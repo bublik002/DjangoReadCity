@@ -1,3 +1,5 @@
+
+{% load i18n %}
 <nav class="d-xl-block navbar navbar-expand-xl header-top-bar Indent " >
     <div class="container-fluid">
         <button class="navbar-toggler button-nav-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Переключатель навигации">
@@ -8,38 +10,64 @@
                 <li class="nav-item d-flex align-items-center">
                     <a class="nav-link text-light " aria-current="page" href="#">
                         <i class="bi bi-airplane"></i>
-                        Россия, Калининград
+                        {% trans "Россия, Калининград" %}
+
                     </a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-light " href="#">Адреса магазинов</a>
+                    <a class="nav-link text-light " href="#">
+                        {% trans "Адреса магазинов" %}
+                        </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-light " href="api">Для разработчиков</a>
+                    <a class="nav-link text-light " href="api">
+                        {% trans "Для разработчиков" %}
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-light" href="#">Доставка и оплата</a>
+                    <a class="nav-link text-light" href="#">
+                        {% trans "Доставка и оплата" %}
+                    </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-light" href="#">Бонусная программа</a>
+                    <a class="nav-link text-light" href="#">
+                        {% trans "Бонусная программа" as bonus_program %}
+                        </a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-light" href="#">Бонусная программа</a>
+                    <a class="nav-link text-light" href="#">
+                        {{bonus_program}}</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-light" href="#">Партнёрская программа</a>
+                    <a class="nav-link text-light" href="#">
+                        {% trans "Партнёрская программа" %}
+                    </a>
+                </li>
+                <li>
+                    {% get_current_language as LANGUAGE_CODE %}
+                    {% get_available_languages as LANGUAGES %}
+                    {% get_language_info_list for LANGUAGES as languages %}
+                    <div style="display:flex;">
+                        {% for language in languages %}
+                            {% if language.code == LANGUAGE_CODE %}
+                                <p class="text-light" style="text-decoration:underline;">{{ language.name_local }}</p>
+                            {% else %}
+                                <a href="/{{ language.code }}/" class="nav-link text-light">{{ language.name_local }}</a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
                 </li>
 
             </ul>
             <ul class=" navbar-nav  ">
                 <li class="nav-item">
-                    <a class="nav-link text-light " href="#">8 (800) 444-8-444 — круглосуточно</a>
+                    <a class="nav-link text-light " href="#">8 (800) 444-8-444 — {% trans "круглосуточно" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-light" href="#">Обратная связь</a>
+                    <a class="nav-link text-light" href="#">{% trans "Обратная связь" %}</a>
                 </li>
             </ul>
             <ul style="width:100vw;" class="navbar-nav navbar-nav-adap">
@@ -50,19 +78,19 @@
             </li>
             <li class="nav-item ">
                 <a class="nav-link link-nav-a" href="#">
-                    <p>Заказы</p>
+                    <p>{% trans "Заказы" as orders %}</p>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link link-nav-a  position-relative" href="#">
-                    <p>Закладки
+                    <p>{{orders}}
                     </p>
 
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link link-nav-a" href="#">
-                    <p>Корзина</p>
+                    <p>{% trans "Корзина" as basket %}</p>
                 </a>
             </li>
         </ul>
@@ -96,21 +124,24 @@
         <div class="dropdown">
             <a class="btn button-nav  dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
                data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-journal"></i> Каталог
+                <i class="bi bi-journal"></i> {% trans "Каталог" %}
             </a>
 
             <ul class="dropdown-menu">
                 {% for key, value in cat.items  %}
                 <li><a class="dropdown-item" href="/library/{{value}}">{{ key }}</a></li>
                 {% endfor %}
-                <li><a class="dropdown-item" href="/library/all">Показать всё</a></li>
+                <li><a class="dropdown-item" href="/library/all">
+                    {% trans "Показать всё" %}
+                    </a>
+                </li>
             </ul>
         </div>
 
 
 
         <form class="search-nav d-flex" method="get" action="{% url 'search' %}">
-            <input name="s" class="form-control" type="text" placeholder="Что будем искать?" aria-label="Поиск">
+            <input name="s" class="form-control" type="text" placeholder='{% trans "Что будем искать?" %}' aria-label="Поиск">
             <button type="submit" class="btn"><i class="bi bi-search"></i></button>
         </form>
 
@@ -124,7 +155,8 @@
                 {% else %}
                 <a class="nav-link link-nav-a" href="/login">
                     <i class="bi bi-person-circle"></i>
-                    <p>Войти</p>
+                    <p>
+                        {% trans "Войти" %}</p>
                 </a>
                 {% endif %}
             </li>
@@ -132,13 +164,14 @@
             <li class="nav-item ">
                 <a class="nav-link link-nav-a" href="#">
                     <i class="bi bi-box"></i>
-                    <p>Заказы</p>
+                    <p>{% trans "Заказы" %}</p>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link link-nav-a  position-relative" href="/bookmarks">
                     <i class="bi bi-bookmarks"></i>
-                    <p>Закладки
+                    <p>
+                        {% trans "Закладки" %}
                     </p>
                 </a>
 
@@ -146,7 +179,7 @@
             <li class="nav-item">
                 <a class="nav-link link-nav-a" href="basket">
                     <i class="bi bi-cart-fill"></i>
-                    <p>Корзина</p>
+                    <p>{{basket}}</p>
                 </a>
             </li>
         </ul>
@@ -158,16 +191,22 @@
 
 <div class="container-fluid Indent nav-3" >
     <div class="row collapse navbar-collapse d-flex justify-content-between" >
-        <div class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">Акция</div>
-        <div class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">Распродажа</div>
-        <div class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">Читай школа</div>
+        <div class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">{% trans "Акция" %}</div>
+        <div class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">{% trans "Распродажа" %}</div>
+        <div class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">{% trans "Читай школа"%}</div>
         <div style="background-color:black; font-weight:700;" class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">
-            Комиксы и Манга
+            {% trans "Комиксы и Манга" %}
 
         </div>
-        <div class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">Подборки</div>
-        <div class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">Читай журнал</div>
-        <div class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">Книжные циклы</div>
+        <div class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">
+            {% trans "Подборки" %}
+            </div>
+        <div class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">
+            {% trans "Читай журнал" %}
+            </div>
+        <div class="col-xl-1 col-lg-3 col-md-3 col-sm-3 col-6">
+            {% trans "Книжные циклы" %}
+            </div>
 
     </div>
 </div>

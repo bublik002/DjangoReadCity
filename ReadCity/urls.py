@@ -16,10 +16,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from debug_toolbar.toolbar import debug_toolbar_urls
-
+from django.conf.urls.i18n import i18n_patterns
 handler404 = "main.views.page_not_found_view"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('main.urls'))
+    path('rosetta/', include('rosetta.urls')),
+
 ] + debug_toolbar_urls()
+
+
+urlpatterns += i18n_patterns(
+    path('', include('main.urls'))
+)

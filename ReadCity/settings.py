@@ -14,10 +14,10 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 # bublik scorpionmuz969@gmail.com
 # d@gmail.com
 # 23catar23
-
-
 import os
+
 from pathlib import Path
+from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,8 +38,11 @@ ALLOWED_HOSTS = ['127.0.0.1']
 
 INSTALLED_APPS = [
     "debug_toolbar",
+    'rosetta',
     'main',
     'djoser',
+    'modeltranslation',
+    'guardian',
     'rest_framework.authtoken',
     'rest_framework',
     'django.contrib.admin',
@@ -53,10 +56,15 @@ INTERNAL_IPS = [
     "127.0.0.1",
 
 ]
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend', # бэкенд Django по умолчанию
+    'guardian.backends.ObjectPermissionBackend', # бэкенд django_guardian
+)
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -124,7 +132,23 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
+# LANGUAGES = [
+#     ('en', 'English'),
+#     ('ru', 'Russian'),
+# ]
+
+LANGUAGES = [
+    ('en', _('English')),
+    ('ru', _('Russian')),
+]
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'ru'
+MODELTRANSLATION_TRANSLATION_REGISTRY = 'main.translation'
 LANGUAGE_CODE = 'ru-RU'
+
+
 
 TIME_ZONE = 'UTC'
 
