@@ -11,6 +11,18 @@ from .models import *
 
 
 #
+from django.contrib import admin
+from mptt.admin import MPTTModelAdmin
+from modeltranslation.admin import TranslationAdmin
+
+from modeltranslation.admin import TabbedTranslationAdmin
+
+
+class BooksTranslationAdmin(TranslationAdmin):
+    pass
+
+admin.site.register(BooksModel, BooksTranslationAdmin)
+
 
 
 class ReviewsAdmin(admin.ModelAdmin):
@@ -28,9 +40,8 @@ class CategoryAdmin(admin.ModelAdmin):
 class UserAdmin(admin.ModelAdmin):
     list_display = ['email', 'first_name', 'last_name', 'phone_number']
 
+# admin.site.register(BooksModel, BooksAdmin)
 
-admin.site.register(BooksModel, BooksAdmin)
-# admin.site.register(BooksModel, PostAdmin)
 admin.site.register(CategoryModel, CategoryAdmin)
 admin.site.register(ReviewsModel, ReviewsAdmin)
 admin.site.register(User, UserAdmin)

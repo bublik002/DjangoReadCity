@@ -6,7 +6,8 @@ from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.base_user import BaseUserManager
-
+from googletrans import Translator, constants
+from pprint import pprint
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -99,6 +100,7 @@ class BooksModel(models.Model):
 
     def save(self, *args, **kwargs):
         self.slug_title = slugify(self.title)
+        # self.title_en = наш перевод
         super(BooksModel, self).save(*args, **kwargs)
 
     def __str__(self):

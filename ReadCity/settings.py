@@ -138,8 +138,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # ]
 
 LANGUAGES = [
-    ('en', _('English')),
     ('ru', _('Russian')),
+    ('en', _('English')),
 ]
 LOCALE_PATHS = [
     BASE_DIR / 'locale',
@@ -148,7 +148,7 @@ MODELTRANSLATION_DEFAULT_LANGUAGE = 'ru'
 MODELTRANSLATION_TRANSLATION_REGISTRY = 'main.translation'
 LANGUAGE_CODE = 'ru-RU'
 
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 TIME_ZONE = 'UTC'
 
