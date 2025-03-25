@@ -88,7 +88,7 @@ class BooksModel(models.Model):
     publishing_house = models.CharField(blank=True, max_length=100)
     publishing_brand = models.CharField(blank=True, max_length=100)
     series = models.CharField(max_length=100, blank=True)  # Серия
-    year_of_publishing = models.IntegerField(blank=True)  # год публикации
+    year_of_publishing = models.IntegerField(blank=True, null=True)  # год публикации
     ISBN = models.CharField(max_length=100, blank=True)
     num_page = models.IntegerField(blank=True)  # количество страниц
     size = models.CharField(max_length=100)  # размер

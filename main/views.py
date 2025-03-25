@@ -253,15 +253,7 @@ class HomePageView(ListView, Context):
     model = BooksModel
 
     def get_queryset(self):
-        count_objects = len(BooksModel.objects.all())
-        if count_objects>5:
-            start = random.randint(0,  count_objects-6)
-            end = start+6
-        else:
-            start = 0
-            end = count_objects
-        # [ran: ran + 6]
-        return self.model.objects.all()[:6]
+        return BooksModel.objects.all().order_by('-id')[:6]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -513,6 +505,7 @@ class CreateBooksView(FormView, Context):
         model_book.age_rest = form.cleaned_data['age_rest']
 
         model_book.creator = User.objects.get(email = self.request.user.email)
+        # print(CategoryModel.objects.filter(subcategory1=cat[0], subcategory2=cat[1]))
         model_book.category.set(CategoryModel.objects.filter(subcategory1=cat[0], subcategory2=cat[1]))
 
         model_book.save()
