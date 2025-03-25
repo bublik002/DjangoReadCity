@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-21 21:51+0200\n"
+"POT-Creation-Date: 2025-03-25 21:17+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,32 +20,132 @@ msgstr ""
 "n%10<=4 && (n%100<12 || n%100>14) ? 1 : n%10==0 || (n%10>=5 && n%10<=9) || "
 "(n%100>=11 && n%100<=14)? 2 : 3);\n"
 
-#: .\main\models.py:110
+#: .\main\forms.py:19 .\main\templates\book.html:150
+msgid "Название"
+msgstr ""
+
+#: .\main\forms.py:21
+msgid "Автор"
+msgstr ""
+
+#: .\main\forms.py:24
+msgid "Цена"
+msgstr ""
+
+#: .\main\forms.py:26
+msgid "Описание"
+msgstr ""
+
+#: .\main\forms.py:28
+msgid "Переводчик"
+msgstr ""
+
+#: .\main\forms.py:31
+msgid "Издательство"
+msgstr ""
+
+#: .\main\forms.py:33
+msgid "Издательский бренд"
+msgstr ""
+
+#: .\main\forms.py:35
+msgid "Серия"
+msgstr ""
+
+#: .\main\forms.py:39
+msgid "Количество страниц"
+msgstr ""
+
+#: .\main\forms.py:41
+msgid "Размер"
+msgstr ""
+
+#: .\main\forms.py:43
+msgid "Тип обложки"
+msgstr ""
+
+#: .\main\forms.py:45
+msgid "Тираж"
+msgstr ""
+
+#: .\main\forms.py:47
+msgid "Вес"
+msgstr ""
+
+#: .\main\forms.py:49
+msgid "Возрастные ограничения"
+msgstr ""
+
+#: .\main\forms.py:52
+msgid "Обложка"
+msgstr ""
+
+#: .\main\models.py:120
 msgid "email"
 msgstr ""
 
-#: .\main\models.py:111
+#: .\main\models.py:121
 msgid "name"
 msgstr ""
 
-#: .\main\models.py:112
+#: .\main\models.py:122
 msgid "surname"
 msgstr ""
 
-#: .\main\models.py:113
+#: .\main\models.py:123
 msgid "registered"
 msgstr ""
 
-#: .\main\models.py:114
+#: .\main\models.py:124
 msgid "is_active"
 msgstr ""
 
-#: .\main\models.py:128
+#: .\main\models.py:138
 msgid "user"
 msgstr ""
 
-#: .\main\models.py:129
+#: .\main\models.py:139
 msgid "users"
+msgstr ""
+
+#: .\main\templates\book.html:69
+msgid "Перейти к характеристикам"
+msgstr ""
+
+#: .\main\templates\book.html:81
+msgid "КУПИТЬ"
+msgstr ""
+
+#: .\main\templates\book.html:88
+msgid "В наличии"
+msgstr ""
+
+#: .\main\templates\book.html:93
+msgid "Другие способы доставки"
+msgstr ""
+
+#: .\main\templates\book.html:112
+msgid "ОТЗЫВЫ"
+msgstr ""
+
+#: .\main\templates\book.html:115
+msgid "НЕТ ОТЗЫВОВ"
+msgstr ""
+
+#: .\main\templates\book.html:124
+msgid "Сначала новые"
+msgstr ""
+
+#: .\main\templates\book.html:176
+msgid "ОПИСАНИЕ И ХАРАКТЕРИСТИКИ"
+msgstr ""
+
+#: .\main\templates\book.html:202
+msgid "ДРУГИЕ КНИГИ"
+msgstr ""
+
+#: .\main\templates\create_entry.html:8
+msgid "Создание карточки товара"
 msgstr ""
 
 #: .\main\templates\includes\footer.html:7
@@ -181,31 +281,31 @@ msgstr ""
 msgid "Закладки"
 msgstr ""
 
-#: .\main\templates\includes\menu.html:194
+#: .\main\templates\includes\menu.html:195
 msgid "Акция"
 msgstr ""
 
-#: .\main\templates\includes\menu.html:195
+#: .\main\templates\includes\menu.html:196
 msgid "Распродажа"
 msgstr ""
 
-#: .\main\templates\includes\menu.html:196
+#: .\main\templates\includes\menu.html:197
 msgid "Читай школа"
 msgstr ""
 
-#: .\main\templates\includes\menu.html:198
+#: .\main\templates\includes\menu.html:199
 msgid "Комиксы и Манга"
 msgstr ""
 
-#: .\main\templates\includes\menu.html:202
+#: .\main\templates\includes\menu.html:203
 msgid "Подборки"
 msgstr ""
 
-#: .\main\templates\includes\menu.html:205
+#: .\main\templates\includes\menu.html:206
 msgid "Читай журнал"
 msgstr ""
 
-#: .\main\templates\includes\menu.html:208
+#: .\main\templates\includes\menu.html:209
 msgid "Книжные циклы"
 msgstr ""
 
@@ -249,56 +349,52 @@ msgstr ""
 msgid "НОВИНКИ ЛИТЕРАТУРЫ"
 msgstr ""
 
-#: .\main\templates\main.html:107 .\main\templates\main.html:136
+#: .\main\templates\main.html:113 .\main\templates\main.html:147
 msgid "Купить"
 msgstr ""
 
-#: .\main\templates\main.html:118
+#: .\main\templates\main.html:124
 msgid "НЕДАВНО ПРОСМОТРЕННЫЕ"
 msgstr ""
 
-#: .\main\templates\main.html:151
+#: .\main\templates\main.html:162
 msgid "ЧИТАЙ-ЖУРНАЛ"
 msgstr ""
 
-#: .\main\templates\main.html:158
+#: .\main\templates\main.html:169
 msgid "Музыка нас связала: 8 книг, где главные герои занимаются музыкой"
 msgstr ""
 
-#: .\main\templates\main.html:162
+#: .\main\templates\main.html:173
 msgid "Рок-группы, трубадуры и дирижёры"
 msgstr ""
 
-#: .\main\templates\main.html:174
+#: .\main\templates\main.html:185
 msgid ""
 "Ворчливая лягушка и семья йети: 6 приключенческих комиксов, достойных "
 "экранизации"
 msgstr ""
 
-#: .\main\templates\main.html:178
+#: .\main\templates\main.html:189
 msgid "Новые «Рик и Морти» и «Время приключений»?"
 msgstr ""
 
-#: .\main\templates\main.html:190
+#: .\main\templates\main.html:201
 msgid "Девушка-трудоголик и парень-домработница: о чём манхва «Её слуга»"
 msgstr ""
 
-#: .\main\templates\main.html:194
+#: .\main\templates\main.html:205
 msgid "Очень медленный слоубёрн из Кореи"
 msgstr ""
 
-#: .\main\views.py:283
+#: .\main\views.py:294
 msgid " товар"
 msgstr ""
 
-#: .\main\views.py:285
+#: .\main\views.py:296
 msgid " товара"
 msgstr ""
 
-#: .\main\views.py:287
+#: .\main\views.py:298
 msgid " товаров"
-msgstr ""
-
-#: .\main\views.py:289
-msgid "welcome"
 msgstr ""

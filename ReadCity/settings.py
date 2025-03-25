@@ -17,6 +17,8 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 import os
 
 from pathlib import Path
+
+from django.conf.global_settings import MEDIA_URL
 from django.utils.translation import gettext_lazy as _
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -185,9 +187,23 @@ REST_FRAMEWORK = {
     ],
 }
 
+CACHES = {
+    # a cache alias or name. In this case, we use "default" as the alias.
+    "default": {
+        # Here, we're using the in-memory cache backend.
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+
+        # LOCATION parameter gives a unique name or identifier to this cache instance.
+        "LOCATION": "unique-snowflake",
+    }
+}
+
 DEFAULT_FROM_EMAIL = 'support@yoursite.ru'
 EMAIL_HOST = "smtp.yoursmtpserver.ru"
 EMAIL_PORT = 25
 EMAIL_HOST_USER = "user"
 EMAIL_HOST_PASSWORD = "pass"
+
+MEDIA_ROOT = BASE_DIR / "main/static/img"
+MEDIA_URL = '/img/'
 

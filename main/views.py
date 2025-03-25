@@ -3,12 +3,13 @@ from django.core.paginator import Paginator
 from rest_framework import generics, permissions
 from django.forms import model_to_dict
 from django.shortcuts import render
-from django.views.generic import FormView, ListView
+from django.views.generic import FormView, ListView, CreateView
 import json
+from datetime import date
 from django.contrib.auth import logout
 from django.contrib.auth.views import LoginView
-from django.urls import reverse
-from django.views.generic.base import TemplateView
+from django.urls import reverse, reverse_lazy
+from django.views.generic.base import TemplateView, View
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, \
     DestroyAPIView, RetrieveAPIView, CreateAPIView
 from django.utils.translation import gettext as _
@@ -16,9 +17,10 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
-from .forms import LoginUserForm, CreateUserForm
+from .forms import LoginUserForm, CreateUserForm, CreateBooksForm
 from .add_scripts import Validation
 from django.shortcuts import redirect
+from django.views.generic.base import ContextMixin
 
 from .serializers import *
 from rest_framework.views import APIView
@@ -32,7 +34,7 @@ class BookAPIListPagination(PageNumberPagination):
     max_page_size = 100
 
 
-# Чтение записей по котигории
+# Чтение записей по категории
 class BooksApiListCategoryView(ListAPIView):
     queryset = BooksModel.objects.all()
     serializer_class = BookSerializer
@@ -224,7 +226,6 @@ def FillingModel(request):
 
 class MenuView(TemplateView):
     def get_context_data(self, **kwargs):
-        print(self.request.GET)
         context = super().get_context_data(**kwargs)
         sub = {}
 
@@ -236,7 +237,19 @@ class MenuView(TemplateView):
         return context
 
 
-class HomePageView(ListView):
+class Context(ContextMixin):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        sub = {}
+
+        for cat in CategoryModel.objects.all():
+            sub[cat.subcategory1] = cat.sub_slugify1
+
+        context['cat'] = sub
+
+        return context
+
+class HomePageView(ListView, Context):
     model = BooksModel
 
     def get_queryset(self):
@@ -248,26 +261,24 @@ class HomePageView(ListView):
             start = 0
             end = count_objects
         # [ran: ran + 6]
-        return self.model.objects.all()[start:end]
+        return self.model.objects.all()[:6]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        sub = {}
-
-        for cat in CategoryModel.objects.all():
-            sub[cat.subcategory1] = cat.sub_slugify1
-
-        context['cat'] = sub
 
         if not self.request.user.is_anonymous:
-            context['viewed'] = User.objects.get(email=self.request.user).viewed.all()[:6]
-            print(User.objects.get(email=self.request.user).viewed.all())
+            viewed = User.objects.get(email=self.request.user).viewed.all()
+            count_viewed = len(viewed)
+            if count_viewed <6:
+                context['viewed'] = viewed
+            else:
+                context['viewed'] = viewed[count_viewed-6:]
         else:
             context['viewed'] = None
         return context
 
 
-class BookmarksView(ListView):
+class BookmarksView(ListView, Context):
     model = User
 
     def get_queryset(self):
@@ -286,12 +297,11 @@ class BookmarksView(ListView):
         else:
             end_numbers_products = _(" товаров")
 
-        print(_("welcome"))
         context["num_books"] = str(numbers_products) + end_numbers_products
         return context
 
 
-class BookView(ListView):
+class BookView(ListView, Context):
     template_name = 'book.html'
     model = BooksModel
 
@@ -318,6 +328,7 @@ class BookView(ListView):
 
         }
         property_book2 = {
+            'Издательский бренд':get_book.publishing_brand,
             "ISBN": get_book.ISBN,
             "Количество страниц": get_book.num_page,
             "Размер": get_book.size,
@@ -341,7 +352,7 @@ class BookView(ListView):
         ]
 
 
-class AuthorizationView(LoginView, MenuView):
+class AuthorizationView(LoginView, Context):
     form_class = LoginUserForm
 
     def get_success_url(self):
@@ -402,7 +413,7 @@ def Basket(request, **kwargs):
     return redirect('/')
 
 
-class SearchBookView(ListView):
+class SearchBookView(ListView, Context):
     model = BooksModel
     template_name = "library.html"
 
@@ -428,7 +439,7 @@ class SearchBookView(ListView):
         return data
 
 
-class BasketView(ListView):
+class BasketView(ListView, Context):
     model = User
 
     def get_queryset(self):
@@ -453,12 +464,69 @@ class BasketView(ListView):
         return context
 
 
-class RegistrationView(FormView, MenuView):
+def storage_file(file, id):
+
+    with open(f'main/static/img/{id}.jpg', 'wb+') as new_file:
+        for chunk in file.chunks():
+         new_file.write(chunk)
+
+
+class CreateBooksView(FormView, Context):
+    form_class = CreateBooksForm
+    template_name = 'create_entry.html'
+    success_url = reverse_lazy('home')
+
+
+    def form_valid(self, form):
+
+        model_book = BooksModel()
+
+        model_book.title = form.cleaned_data['title']
+        model_book.author =  form.cleaned_data['author']
+
+        # !!!
+        try:
+            model_book.img_local = self.request.FILES['img_local']
+
+        except:
+            form.add_error('img_local', 'Загрузите фотографию')
+            return self.form_invalid(form)
+
+        model_book.price =  form.cleaned_data['price']
+        model_book.info_txt =  form.cleaned_data['info_txt']
+
+        cat = form.cleaned_data['cat'].split(' / ')
+
+        model_book.interpreter =  form.cleaned_data['interpreter']
+        model_book.publishing_house =  form.cleaned_data['publishing_house']
+        model_book.publishing_brand =  form.cleaned_data['publishing_brand']
+
+        model_book.id = BooksModel.objects.all().reverse()[0].id_book+1
+        model_book.series =  form.cleaned_data['series']
+        model_book.year_of_publishing = date.today().year
+        model_book.ISBN =  form.cleaned_data['ISBN']
+        model_book.num_page =  form.cleaned_data['num_page']
+        model_book.size =  form.cleaned_data['size']
+        model_book.cover_type =  form.cleaned_data['cover_type']
+        model_book.circulation =  form.cleaned_data['circulation']
+        model_book.weight =  form.cleaned_data['weight']
+        model_book.age_rest = form.cleaned_data['age_rest']
+
+        model_book.creator = User.objects.get(email = self.request.user.email)
+        model_book.category.set(CategoryModel.objects.filter(subcategory1=cat[0], subcategory2=cat[1]))
+
+        model_book.save()
+
+
+        return super().form_valid(form)
+
+
+class RegistrationView(FormView, Context):
     form_class = CreateUserForm
     template_name = 'registration/registration.html'
     success_url = '/'
 
-    def EmailConfirmation(self):
+    def emailConfirmation(self):
         pass
 
     def form_valid(self, form):

@@ -45,7 +45,11 @@
                     <div class="book-info-basket">
                         <div class="book-info-basket-left">
                             <a href="#" class="img-basket-a">
-                                <img src={{book.img}}>
+                                {% if book.img == "" %}
+                                    <img src={{book.img_local.url}}>
+                                {% else %}
+                                    <img src={{book.img}}>
+                                {% endif %}
                             </a>
 
                             <div style="margin-left: 1vw;">

@@ -5,9 +5,10 @@ from .views import *
 from rest_framework import routers
 from django.conf.urls import handler404
 from django.contrib.auth.urls import *
+from django.conf import settings
+from django.conf.urls.static import static
 
 router = routers.SimpleRouter()
-# router.register(r'book', BookViewSet)
 
 urlpatterns = [
     path('', HomePageView.as_view(template_name='main.html'), name='home'),
@@ -24,6 +25,7 @@ urlpatterns = [
     path('book/<slug:book>', BookView.as_view(), name='book'),
     path('search', SearchBookView.as_view(), name='search'),
     path('api', HomePageView.as_view(template_name='drf_doc.html'), name='api'),
+    path('create-entry', CreateBooksView.as_view(), name='create_entry'),
 
     # path('api/v1/drf-auth/', include('rest_framework.urls')),
     path('api/v1/auth/', include('djoser.urls')),
@@ -41,5 +43,5 @@ urlpatterns = [
 
     path('api/v1/', include(router.urls)),
 
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

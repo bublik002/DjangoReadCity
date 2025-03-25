@@ -18,7 +18,7 @@ from modeltranslation.admin import TranslationAdmin
 from modeltranslation.admin import TabbedTranslationAdmin
 
 
-class BooksTranslationAdmin(TranslationAdmin):
+class BooksTranslationAdmin(TabbedTranslationAdmin):
     pass
 
 admin.site.register(BooksModel, BooksTranslationAdmin)

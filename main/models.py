@@ -73,33 +73,39 @@ class ReviewsModel(models.Model):
 class BooksModel(models.Model):
     title = models.CharField(max_length=200)
     author = models.CharField(blank=True, max_length=100)
-    img = models.CharField(max_length=300)
+    img = models.CharField(max_length=300, blank=True)
+
+    img_local = models.FileField(upload_to='cover', blank=True)
+
     price = models.IntegerField()
-    score = models.IntegerField(blank=True, null=True)
-    num_score = models.IntegerField(blank=True, null=True)
     info_txt = models.CharField(max_length=4000)
     slug_title = models.CharField(blank=True, max_length=500)
 
     category = models.ManyToManyField(CategoryModel)
 
     interpreter = models.CharField(blank=True, max_length=100)
-    id_book = models.IntegerField(null=True)  # id
-    publishing_house = models.CharField(blank=True, max_length=100)  # издательсво
-    publishing_brand = models.CharField(blank=True, max_length=100, default='')
+    id_book = models.IntegerField(null=True, blank=True)  # id
+    publishing_house = models.CharField(blank=True, max_length=100)
+    publishing_brand = models.CharField(blank=True, max_length=100)
     series = models.CharField(max_length=100, blank=True)  # Серия
-    year_of_publishing = models.IntegerField(blank=True, null=True)  # год публикации
+    year_of_publishing = models.IntegerField(blank=True)  # год публикации
     ISBN = models.CharField(max_length=100, blank=True)
-    num_page = models.IntegerField(blank=True, null=True)  # количество страниц
-    size = models.CharField(max_length=100, blank=True)  # размер
-    cover_type = models.CharField(max_length=100, blank=True)  # Тип обложки
+    num_page = models.IntegerField(blank=True)  # количество страниц
+    size = models.CharField(max_length=100)  # размер
+    cover_type = models.CharField(max_length=100)  # Тип обложки
     circulation = models.IntegerField(blank=True, null=True)  # тираж
-    weight = models.IntegerField(blank=True, null=True)  # вес
-    age_rest = models.IntegerField(blank=True, null=True)  # возрастные ограничения
+    weight = models.IntegerField(blank=True)  # вес
+
+    publishing = models.BooleanField(default=False)
+
+    age_rest = models.CharField(choices=(('1', 'Нет'), ('2', '6+'), ('3', '12+'), ('4', '16+'), ('5', '18+') ), default='1', blank=True)
+    # age_rest = models.IntegerField(blank=True, null=True)  # возрастные ограничения
 
     creator = models.ForeignKey('User', on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
         self.slug_title = slugify(self.title)
+
         # self.title_en = наш перевод
         super(BooksModel, self).save(*args, **kwargs)
 
@@ -116,6 +122,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(_('is_active'), default=True)  # Активный пользователь
     is_staff = models.BooleanField('is_stuff', default=True)  # Может войти в admin login
     phone_number = models.CharField(max_length=12, default='77777777777')
+
+    seller = models.BooleanField(default=False)
 
     bookmarks = models.ManyToManyField(BooksModel, blank=True, related_name='bookmarks')
     basket = models.ManyToManyField(BooksModel, blank=True, related_name='basket')

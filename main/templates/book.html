@@ -19,7 +19,8 @@
         </div>
 
         <div class="ratings-reviews">
-             <p class="text-secondary">(0 оценок)</p>
+             <p class="text-secondary">
+                 (0 оценок)</p>
              <a class="link">Оценить</a>
              <a class="link">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" class="product-detail-review__icon link"><path d="M7 9a1 1 0 001 1h8a1 1 0 100-2H8a1 1 0 00-1 1zm1 5a1 1 0 110-2h8a1 1 0 110 2H8z"></path><path d="M18 3a3 3 0 013 3v10a3 3 0 01-3 3H8.472a1 1 0 00-.447.106l-3.578 1.788A1 1 0 013 20V6a3 3 0 013-3h12zm1 3a1 1 0 00-1-1H6a1 1 0 00-1 1v12.382l2.13-1.065A3 3 0 018.473 17H18a1 1 0 001-1V6z"></path></svg>
@@ -30,7 +31,11 @@
 
         <div class="row slide-one">
             <div class="imgs col-sm-3 col-12">
+                {% if book.img == "" %}
+                    <img src={{book.img_local.url}} class="card-img-top image-book">
+                {% else %}
                 <img class="basic-img col-12" src={{book.img}}>
+                {% endif %}
 
                 <a href="#" class="link d-flex justify-content-center" style="margin-top:1vw; font-size:16px">
                     <svg style="margin:auto 0" width="24" height="10" viewBox="0 0 24 10" fill="none" xmlns="http://www.w3.org/2000/svg" alt="glass" class="product-detail-cover__icon "><path d="M6 9a4 4 0 100-8 4 4 0 000 8z" stroke="#26A9E0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M18 9a4 4 0 100-8 4 4 0 000 8z" stroke="#26A9E0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 3.5v0a4.472 4.472 0 014 0v0" stroke="#26A9E0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M1 3.467l1.126.65" stroke="#26A9E0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path><path d="M23 3.467l-1.126.65" stroke="#26A9E0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -60,7 +65,9 @@
 
                 </div>
 
-                <a class='link go-to-description' href="#"> Перейти к характеристикам</a>
+                <a class='link go-to-description' href="#">
+                    {% trans "Перейти к характеристикам" %}
+                    </a>
 
             </div>
 
@@ -70,17 +77,21 @@
                     <p class="price-p">{{book.price}} Р</p>
 
                     <div class="buttons row" style="--bs-gutter-x: 0;">
-                        <button class="btn btn-left col-8">КУПИТЬ</button>
+                        <button class="btn btn-left col-8">
+                            {% trans "КУПИТЬ" %}
+                            </button>
                         <button class="btn btn-right col-1"> <i class="fa fa-bookmark-o " aria-hidden="true"></i> </button>
                     </div>
 
                     <p class="availability">
                         <i class="fa fa-check" aria-hidden="true"></i>
-                        В наличии </p>
+                        {% trans "В наличии" %}
+                         </p>
 
                     <div class="dropdown">
                         <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Другие способы доставки
+                            {% trans "Другие способы доставки" %}
+
                         </button>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="#"></a></li>
@@ -98,9 +109,11 @@
         <div class="reviews">
             <div class="table-contents-notes">
                 {% if reviews|length != 0 %}
-                    <h2> ОТЗЫВЫ {{reviews|length}}</h2>
+                    <h2> {% trans "ОТЗЫВЫ" %}  {{reviews|length}}</h2>
                 {% else %}
-                    <h2> НЕТ ОТЗЫВОВ</h2>
+                    <h2>
+                        {% trans "НЕТ ОТЗЫВОВ" %}
+                    </h2>
                 {% endif %}
                 <button class="btn btn-reviews"> Оставить отзыв</button>
             </div>
@@ -108,7 +121,8 @@
             <div class="dropdown">
                 {% if reviews|length != 0 %}
                 <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  Сначала новые
+                  {% trans "Сначала новые" %}
+
                 </button>
                 {% endif %}
                 <ul class="dropdown-menu">
@@ -132,7 +146,10 @@
 
 
 
-                    <h3 class="card-title">Название</h3>
+                    <h3 class="card-title">
+                        {% trans "Название" %}
+
+                    </h3>
                     <p class="card-text">{{review.comment}}</p>
 
                     <div class="user-ratings-div">
@@ -155,7 +172,9 @@
         </div>
 
         <div class="specifications">
-            <h1>ОПИСАНИЕ И ХАРАКТЕРИСТИКИ</h1>
+            <h1>
+                {% trans "ОПИСАНИЕ И ХАРАКТЕРИСТИКИ" %}
+            </h1>
             <p class="description-p">
                 {{book.info_txt}}
             </p>
@@ -180,7 +199,8 @@
 
     <div class="books-container container-fluid" >
         <h1 class="h-books" style="padding-left:5vw;">
-            ДРУГИЕ КНИГИ
+            {% trans "ДРУГИЕ КНИГИ" %}
+
         </h1>
 
         {% for books in object_list %}
@@ -188,7 +208,12 @@
             {% for book in books %}
             <div class="card col col-xl-2 col-lg-4 col-md-6 col-12 book-card">
                 <a href="/book/{{book.slug_title}}"  class="a-image-book">
+                {% if book.img == "" %}
+                    <img src={{book.img_local.url}} class="card-img-top image-book">
+                {% else %}
                     <img src={{book.img}} class="card-img-top image-book">
+                {% endif %}
+
                 </a>
 
                 <div class="card-body">
