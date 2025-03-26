@@ -299,7 +299,8 @@ class BookView(ListView, Context):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        get_book = self.model.objects.get(slug_title=self.kwargs['book'])
+
+        get_book = self.model.objects.get(id_book=self.kwargs['id'])
         sub = {}
 
         if not self.request.user.is_anonymous:
@@ -386,7 +387,7 @@ class LibraryView(ListView):
 
 
 def BookMarks(request, **kwargs):
-    book_add = BooksModel.objects.get(slug_title=kwargs['book'])
+    book_add = BooksModel.objects.get(id_book=kwargs['book'])
     user = User.objects.get(email=request.user.email)
     if book_add not in user.bookmarks.all():
         user.bookmarks.add(book_add)
@@ -396,7 +397,7 @@ def BookMarks(request, **kwargs):
 
 
 def Basket(request, **kwargs):
-    book_add = BooksModel.objects.get(slug_title=kwargs['book'])
+    book_add = BooksModel.objects.get(int_book=kwargs['id'])
     user = User.objects.get(email=request.user.email)
     if book_add not in user.basket.all():
         user.basket.add(book_add)

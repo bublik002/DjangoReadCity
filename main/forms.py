@@ -6,13 +6,14 @@ from .models import User, UserManager, BooksModel, CategoryModel
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 
-
+choices_cat = ((i.subcategory1 + ' / ' + i.subcategory2, i.subcategory1 + ' / ' + i.subcategory2) for i in
+               CategoryModel.objects.all())
+choices_age_rest = ((1, 'Нет'), (2, '6+'), (3, '12+'), (4, '16+'), (5, '18+'))
 
 
 class CreateBooksForm(forms.Form):
 
-    choices_cat = (( i.subcategory1+' / '+i.subcategory2, i.subcategory1+' / '+i.subcategory2) for i in CategoryModel.objects.all())
-    choices_age_rest = ((1, 'Нет'), (2, '6+'), (3, '12+'), (4, '16+'), (5, '18+'))
+
     base_attrs = {'class': 'form-control'}
 
 
@@ -44,17 +45,17 @@ class CreateBooksForm(forms.Form):
                             widget=forms.TextInput(base_attrs))  # Тип обложки
     circulation = forms.IntegerField(label=_('Тираж'),
                             widget=forms.TextInput(attrs=base_attrs))  # тираж
-    weight = forms.IntegerField(label=_('Вес'),
-                            widget=forms.TextInput(attrs=base_attrs))  # вес
-    age_rest = forms.ChoiceField(label=_('Возрастные ограничения'), choices = choices_age_rest,
-                            widget=forms.Select(attrs={'class': 'form-select', 'style':'width:10vw'}))  # возрастные ограничения
-
-    img_local = forms.ImageField(label=_('Обложка'),required=False,
-                              widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'file','id':'img_local'}))
-
-
-    cat = forms.ChoiceField(label="Категория", choices= choices_cat,
-                            widget=forms.Select(attrs={'class': 'form-select', 'style':'width:25vw'}))
+    # weight = forms.IntegerField(label=_('Вес'),
+    #                         widget=forms.TextInput(attrs=base_attrs))  # вес
+    # age_rest = forms.ChoiceField(label=_('Возрастные ограничения'), choices = choices_age_rest,
+    #                         widget=forms.Select(attrs={'class': 'form-select', 'style':'width:10vw'}))  # возрастные ограничения
+    #
+    # img_local = forms.ImageField(label=_('Обложка'),required=False,
+    #                           widget=forms.TextInput(attrs={'class': 'form-control', 'type': 'file','id':'img_local'}))
+    #
+    #
+    # cat = forms.ChoiceField(label="Категория", choices= choices_cat,
+    #                         widget=forms.Select(attrs={'class': 'form-select', 'style':'width:25vw'}))
 
 
 

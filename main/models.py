@@ -84,7 +84,7 @@ class BooksModel(models.Model):
     category = models.ManyToManyField(CategoryModel)
 
     interpreter = models.CharField(blank=True, max_length=100)
-    id_book = models.IntegerField(null=True, blank=True)  # id
+    id_book = models.IntegerField(null=True, blank=True, db_index=True)  # id
     publishing_house = models.CharField(blank=True, max_length=100)
     publishing_brand = models.CharField(blank=True, max_length=100)
     series = models.CharField(max_length=100, blank=True)  # Серия
