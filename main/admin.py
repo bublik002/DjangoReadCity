@@ -21,7 +21,7 @@ from modeltranslation.admin import TabbedTranslationAdmin
 class BooksTranslationAdmin(TabbedTranslationAdmin):
     pass
 
-admin.site.register(BooksModel, BooksTranslationAdmin)
+# admin.site.register(BooksModel, BooksTranslationAdmin)
 
 
 
@@ -36,12 +36,15 @@ class BooksAdmin(admin.ModelAdmin):
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ['subcategory1', 'subcategory2']
 
+class ViewedAdmin(admin.ModelAdmin):
+    list_display = ['date_viewed']
 
 class UserAdmin(admin.ModelAdmin):
     list_display = ['email', 'first_name', 'last_name', 'phone_number']
 
-# admin.site.register(BooksModel, BooksAdmin)
+admin.site.register(BooksModel, BooksAdmin)
 
 admin.site.register(CategoryModel, CategoryAdmin)
 admin.site.register(ReviewsModel, ReviewsAdmin)
 admin.site.register(User, UserAdmin)
+admin.site.register(ViewedModel, ViewedAdmin)

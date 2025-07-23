@@ -70,12 +70,15 @@
 
 }
 
-.buttons-basket a{
-    background-color: #D4F0FD;
+.buttons-basket button{
+    background-color:rgb(38, 169, 224)
     width: 35px;
     height: 35px;
     display: flex;
 
+}
+.buttons-basket button: hover{
+    background-color:white;
 }
 
 .books-basket{

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     {% load static %}
-
+    {% load i18n %}
     {% include 'includes/settings.html' %}
     <title>Закладки</title>
     <link rel="stylesheet" href="{% static 'css/bookmarks.css' %}">
@@ -10,7 +10,7 @@
 
 </head>
 
-<body >
+<body  id="main-book" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' >
     {% include 'includes/menu.html' %}
     <div class="d-flex Indent" style="margin-top: 3.5vw;">
         <div class="menu-bookmarks-div">
@@ -45,7 +45,7 @@
 
         </div>
 
-        <div class="bookmarks-products">
+        <div class="bookmarks-products" >
             <div class="bookmarks-header">
 
                 <div class="d-flex">
@@ -53,10 +53,17 @@
                     <span>{{num_books}}</span>
                 </div>
 
-                <a href="#">
-                    <i class="fa fa-trash-o" style="margin-right: 5px;" aria-hidden="true"></i>
 
-                    Удалить всё</a>
+
+                <button type="submit"
+                style="padding:5px"
+                class=" btn btn-danger"
+                hx-target="#book"
+                hx-swap="outerHTML"
+                hx-post="{% url 'delete_all_bookmarks' %}"
+                >Удалить всё</button>
+
+
 
             </div>
 
@@ -68,29 +75,10 @@
 
             <div class="books-container container-fluid">
 
-                <div class="row books-cards">
+                <div class="row books-cards" id="book">
                     {% for book in object_list %}
-                    <div class="card col col-xl-3 col-lg-4 col-md-6 col-12 book-card">
-                        <a href="/book/{{book.id}}" class="a-image-book">
-                            {% if book.img == "" %}
-                                <img src={{book.img_local.url}} class="card-img-top image-book">
-                            {% else %}
-                                <img src={{book.img}} class="card-img-top image-book">
-                            {% endif %}
-
-                        </a>
-                        <div class="card-body">
-                            <div style="height:12vw">
-                                <h5 class="card-title text-danger">{{book.price}} ₽</h5>
-                                <a class="card-subtitle mb-2 name-book-a" href="/book/{{book.slug_title}}">{{book.title|truncatechars:40}}</a>
-                                <a class="cart-text text-secondary author-book-a" href="#">{{book.author|truncatechars:40}}</a>
-                            </div>
-                            <div class="d-flex justify-content-between">
-                                <a href="basket/{{book.slug_title}}" class="card-link btn btn-primary button-basket ">Купить</a>
-                                <a href="bookmark/{{book.slug_title}}" class="card-link btn btn-primary button-fav"><i
-                                        class="bi bi-bookmarks"></i></a>
-                            </div>
-                        </div>
+                    <div class="card col col-xl-3 col-lg-4 col-md-6 col-12 book-card" id="book-{{book.id_book}}">
+                        {% include 'includes/books.html' %}
                     </div>
                     {% endfor %}
                 </div>
@@ -104,6 +92,8 @@
     </div>
 
     {% include 'includes/footer.html' %}
+    
+    <script src="https://unpkg.com/htmx.org@1.9.4"></script>
 </body>
 
 </html>

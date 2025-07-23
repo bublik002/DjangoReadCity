@@ -39,16 +39,9 @@ p{
     justify-content: center;
     width:9vw;
     }
-.button-nav:hover{
-    background-color:rgb(38, 96, 171);
-    color:white;
-    border: 0;
-}
 
-.btn{
-    padding:0;
-    text-align: center;
-}
+
+
 .nav-2{
     background:#26a9e0;
     height:7vw;
@@ -111,8 +104,11 @@ p{
     width:60%;
     height: 2.5vw;
     border:0;
-    background-color:#26a9e0;
+
 }
+
+
+
 .a-image-book{
     display: flex;
     height: 30vw;
@@ -132,17 +128,59 @@ p{
 }
 .user-name{
     max-width:5vw;}
+
 .button-fav{
     display: flex;
     align-items: center;
     justify-content: space-around;
-    background-color:white;
-    color:#26a9e0;
     border:0;
     width: 2.5vw;
     height: 2.5vw;
     font-size: 1.2vw;
-    margin:0;}
+    margin:0;
+}
+
+.btn{
+    padding:0;
+    color:white;
+    text-align: center;
+
+
+
+}
+
+.button-fav-no-bookmarks{
+    background-color:white;
+    color:#26a9e0;
+}
+.button-fav-no-bookmarks:hover{
+    background-color:#26a9e0;
+    color:white;
+}
+.button-fav-bookmarks{
+    background-color:#3CB371;
+    color:white;
+}
+.button-fav-bookmarks:hover{
+    background-color:white;
+    color:#26a9e0;
+}
+
+
+.button-fav-no-basket{
+    background-color:#26a9e0;
+    color:white;
+}
+
+.button-fav-basket{
+    background-color:#3CB371;
+    color:white;
+}
+
+
+
+
+
 .books-cards .card-body{
     padding:5%;
     }
@@ -151,11 +189,7 @@ p{
 .books-cards .card{
     /* padding-left:0;padding-right:0; */
     }
-.button-fav:hover{
-    background-color:#26a9e0;
-    color:white;
-    border:0;
-}
+
 .books-cards{
     width: 100%;
     padding-left:5vw;
@@ -208,23 +242,31 @@ footer .card{
     }
 
 
+
+
 .footer-top-link{
     width:40%;
     display:flex;
     justify-content:space-between;
     }
 .footer-bottom{
-
     align-items:center;
     display:flex;
-    justify-content:space-between;}
+    justify-content:space-between;
+    }
 .footer-bottom-left{
     display:flex;
     width:60%;
-    justify-content:space-between}
+    justify-content:space-between;
+    }
 
 .footer-bottom-left .d-flex *{
     margin-right:0.6vw;}
+
+.book-in-basket{
+    background-color:rgb(60, 179, 113);
+}
+
 @media screen and (max-width:768px){
     .search-nav {
         height:10vw;}

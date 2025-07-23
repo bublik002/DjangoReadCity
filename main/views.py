@@ -1,10 +1,17 @@
-import random
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.paginator import Paginator
+from django.http import HttpResponse, JsonResponse
+from django.template.loader import render_to_string
 from rest_framework import generics, permissions
 from django.forms import model_to_dict
 from django.shortcuts import render
 from django.views.generic import FormView, ListView, CreateView
+from django.views.decorators.http import require_http_methods
+from django.db.models import Q, QuerySet
 import json
+from django.http import Http404
+from django.core.cache import cache
+from django.views.decorators.cache import cache_page
 from datetime import date
 from django.contrib.auth import logout
 from django.contrib.auth.views import LoginView
@@ -18,7 +25,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, I
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from .forms import LoginUserForm, CreateUserForm, CreateBooksForm
-from .add_scripts import Validation
+from .add_scripts import Validation, EndNumbersProduct
 from django.shortcuts import redirect
 from django.views.generic.base import ContextMixin
 
@@ -27,6 +34,396 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from .permission import *
 
+def delete_cache_keys():
+    cache.delete('new_books_home')
+    cache.delete('all_books')
+
+    for cat in CategoryModel.objects.all():
+        cache.delete(f'cat_filter_{cat.subcategory1}')
+
+    for direction in ('ascend', 'descend'):
+        for filter in ( 'title', 'author', 'price'):
+            for cat_sort in CategoryModel.objects.all():
+                cache.delete(f'{direction}_{filter}_{cat_sort.subcategory1}_sort')
+
+
+
+class Context(ContextMixin):
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+        sub = {}
+
+        book_category = cache.get_or_set('cached_book_category', CategoryModel.objects.all(), 3600**2)
+
+        for cat in book_category:
+            sub[cat.subcategory1] = cat.sub_slugify1
+
+        if not self.request.user.is_anonymous:
+            get_user = self.request.user
+            context['bookmarks'] = get_user.bookmarks.all()
+            context['basket_books'] = get_user.basket.all()
+
+        context['cat'] = sub
+
+        return context
+
+
+
+
+class HomePageView(ListView, Context):
+    model = BooksModel
+
+    def get_queryset(self):
+        books_all = cache.get_or_set('all_books', self.model.objects.all())
+
+        return cache.get_or_set('new_books_home', books_all.order_by('-id')[:6])
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        viewed = ViewedModel.objects.all()
+        if not user.is_anonymous:
+            get_user = User.objects.get(email=user.email)
+            viewed = viewed.filter(user=get_user).select_related('book')
+            viewed = [i.book for i in viewed]
+            count_viewed = len(viewed)
+
+            context['viewed'] = viewed[:6] if count_viewed >=6 else viewed
+
+        else:
+            context['viewed'] = None
+
+        return context
+
+
+class BookmarksView(ListView, Context):
+    model = User
+
+    def get_queryset(self):
+        return  self.request.user.bookmarks.all()
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        get_user = self.request.user
+        bookmarks = get_user.bookmarks.all()
+        numbers_products = len(bookmarks)
+        end_numbers_products = _(EndNumbersProduct(numbers_products))
+
+        context['delete_book'] = True
+        # context['bookmarks'] = bookmarks
+        context["num_books"] = str(numbers_products) + end_numbers_products
+
+        return context
+
+
+class BookView(ListView, Context):
+    template_name = 'book.html'
+    model = BooksModel
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        get_book = cache.get_or_set(f'book_{self.kwargs['id']}',
+                                    self.model.objects.get(id_book=self.kwargs['id']))
+        get_user = self.request.user
+
+        if not get_user.is_anonymous:
+            ViewedModel.objects.create(user=get_user, book=get_book)
+
+        context['book'] = get_book
+
+        property_book1 = {
+            "Переводчик": get_book.interpreter,
+            "ID": get_book.id_book,
+            "Издательство": get_book.publishing_house,
+            "Серия": get_book.series,
+            "Год публикации": get_book.year_of_publishing,
+
+        }
+        property_book2 = {
+            'Издательский бренд':get_book.publishing_brand,
+            "ISBN": get_book.ISBN,
+            "Количество страниц": get_book.num_page,
+            "Размер": get_book.size,
+            "Тип обложки": get_book.cover_type,
+            "Тираж": get_book.circulation,
+            "Вес": get_book.weight,
+            "Возрастное ограничение": get_book.age_rest,
+        }
+        context['property_book1'] = property_book1
+        context['property_book2'] = [property_book1, property_book2]
+        return context
+
+    def get_queryset(self):
+
+        get_book = cache.get_or_set(f'book_{self.kwargs['id']}',
+                                    self.model.objects.get(id_book=self.kwargs['id']))
+        category = get_book.category.all()[0]
+
+        return cache.get_or_set(f'books_{category.sub_slugify1}',
+            BooksModel.objects.filter(category=category))[:6]
+
+
+class MyProductsView(ListView, Context):
+    model = BooksModel
+    paginate_by = 18
+
+    def get_queryset(self):
+        if self.request.user.is_anonymous:
+            return []
+        return self.model.objects.filter(creator=self.request.user)
+
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if not self.request.user.is_anonymous:
+            numbers_products =len(self.model.objects.filter(creator=self.request.user))
+            end_numbers_products = _(EndNumbersProduct(numbers_products))
+
+            self.model.objects.filter(creator=self.request.user)
+            context["num_books"] = str(numbers_products) + end_numbers_products
+
+        return context
+
+
+class AuthorizationView(LoginView, Context):
+    form_class = LoginUserForm
+
+    def get_success_url(self):
+        return reverse('home')
+
+
+
+def verify(request, uuid):
+    try:
+        user = User.objects.get(verification_uuid=uuid, is_verified=False)
+    except User.DoesNotExist:
+        raise Http404("User does not exist or is already verified")
+
+    user.is_verified = True
+    user.save()
+    return render(request, 'activate.html')
+
+def logout_(request):
+    logout(request)
+    return redirect('/')
+
+
+class LibraryView(ListView, Context):
+    model = BooksModel
+    template_name = "library.html"
+    paginate_by = 18
+
+    def get_queryset(self):
+        category = cache.get_or_set('cat_filter_' + self.kwargs['book'], CategoryModel.objects.filter(sub_slugify1=self.kwargs['book']))
+        # category = CategoryModel.objects.filter(sub_slugify1=self.kwargs['book'])
+
+        if len(category) != 0:
+            return BooksModel.objects.filter(category__in=category)
+
+        return cache.get_or_set('all_books',BooksModel.objects.all())
+
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # if not self.request.user.is_anonymous:
+        #     get_user = self.request.user
+            # context['bookmarks'] = get_user.bookmarks.all()
+
+        if self.kwargs['book'] != 'all':
+            context['category'] = cache.get('cat_filter_'+self.kwargs['book'])[0].subcategory1
+
+        else:
+            context['category'] = 'Все книги'
+
+        return context
+
+
+@require_http_methods(['GET'])
+def filter_books(request, cat_sort, filter, direction):
+    title_cache = f'{direction}_{filter}_{cat_sort}_sort'
+
+    if direction == "descend":
+        filter = '-' + filter
+
+    if cat_sort == "all":
+
+        book_list = cache.get_or_set(title_cache, BooksModel.objects.order_by(filter))
+
+    else:
+        book_list = cache.get_or_set(title_cache, BooksModel.objects.filter(category__in=CategoryModel.objects.filter(subcategory1=cat_sort)).order_by(filter))
+
+    return render(request, "library.html", {'object_list':book_list, 'category':cat_sort})
+
+
+@require_http_methods(['POST'])
+def book_marks_delete(request, id):
+    print(11)
+    book_add = BooksModel.objects.get(id_book=id)
+    request.user.bookmarks.remove(book_add)
+    return HttpResponse('<div></div>')
+
+@require_http_methods(['POST'])
+def book_marks_add(request, id):
+    print(12)
+    book_add = BooksModel.objects.get(id_book=id)
+    request.user.bookmarks.add(book_add)
+    return HttpResponse('<div></div>')
+
+@require_http_methods(['POST'])
+def delete_all_bookmarks(request):
+    request.user.bookmarks.clear()
+    return HttpResponse('<h1 style="margin: 40px 0">Книги были удалены</h1>')
+
+@require_http_methods(['POST'])
+def basket_delete(request, id):
+    book = BooksModel.objects.get(id_book=id)
+    user = request.user
+    for i in user.basket.filter(id_book=book.id_book):
+        user.basket.remove(i)
+
+    return HttpResponse("<div> </div>")
+
+@require_http_methods(['POST'])
+def basket_add(request, id):
+    book = BooksModel.objects.get(id_book=id)
+    request.user.basket.add(book)
+    html = render_to_string('includes/basket_buttons.html',  request=request)
+
+    return HttpResponse(html)
+
+
+
+
+class SearchBookView(ListView, Context):
+    model = BooksModel
+    template_name = "library.html"
+
+    def get_queryset(self):
+        s = self.request.GET.get('s', '').strip()
+        if not s:
+            return self.model.objects.none()
+
+        return self.model.objects.filter(
+            Q(title__icontains=s) |
+            Q(author__icontains=s) |
+            Q(interpreter__icontains=s) |
+            Q(series__icontains=s) |
+            Q(info_txt__icontains=s) |
+            Q(ISBN__icontains=s) |
+            Q(category__subcategory1__icontains=s) |
+            Q(category__subcategory2__icontains=s)
+        ).distinct()
+
+class BasketView(ListView, Context):
+    model = User
+
+
+    def get_queryset(self):
+        return self.request.user.basket.all()
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        # context["num_books"] = len(self.bookmarks_profile)
+
+        numbers_products = len(user.basket.all())
+        end_numbers_products = _(EndNumbersProduct(numbers_products))
+        context['bookmarks'] = user.bookmarks.all()
+        context["num_books"] = str(numbers_products) + end_numbers_products
+        return context
+
+
+class CreateBooksView(FormView, Context):
+    form_class = CreateBooksForm
+    template_name = 'create_entry.html'
+    success_url = reverse_lazy('home')
+
+
+    def form_valid(self, form):
+
+        model_book = BooksModel()
+
+        model_book.title = form.cleaned_data['title']
+        model_book.author =  form.cleaned_data['author']
+
+        # !!!
+        try:
+            model_book.img_local = self.request.FILES['img_local']
+
+        except:
+            form.add_error('img_local', 'Загрузите фотографию')
+            return self.form_invalid(form)
+
+        model_book.price =  form.cleaned_data['price']
+        model_book.info_txt =  form.cleaned_data['info_txt']
+
+        cat = form.cleaned_data['cat'].split(' / ')
+
+        model_book.interpreter =  form.cleaned_data['interpreter']
+        model_book.publishing_house =  form.cleaned_data['publishing_house']
+        model_book.publishing_brand =  form.cleaned_data['publishing_brand']
+
+        model_book.id_book = BooksModel.objects.all().reverse()[0].id_book+1
+        model_book.series =  form.cleaned_data['series']
+        model_book.year_of_publishing = date.today().year
+        model_book.ISBN =  form.cleaned_data['ISBN']
+        model_book.num_page =  form.cleaned_data['num_page']
+        model_book.size =  form.cleaned_data['size']
+        model_book.cover_type =  form.cleaned_data['cover_type']
+        model_book.circulation =  form.cleaned_data['circulation']
+        model_book.weight =  form.cleaned_data['weight']
+        model_book.age_rest = form.cleaned_data['age_rest']
+
+        model_book.creator = self.request.user
+        model_book.save()
+
+        model_book.category.set(CategoryModel.objects.filter(subcategory1=cat[0], subcategory2=cat[1]))
+
+        model_book.save()
+
+        delete_cache_keys()
+
+        return super().form_valid(form)
+
+class MailView(TemplateView, Context):
+    pass
+
+class RegistrationView(FormView, Context):
+    form_class = CreateUserForm
+    template_name = 'registration/registration.html'
+    success_url = '/mail'
+
+
+    def form_valid(self, form):
+        email = form.cleaned_data['email']
+        first_name = form.cleaned_data['first_name']
+        last_name = form.cleaned_data['last_name']
+        phone_number = form.cleaned_data['phone_number']
+        password1 = form.cleaned_data['password1']
+        password2 = form.cleaned_data['password2']
+        data_entry = form.cleaned_data['data_entry']
+
+        valid = Validation(email, first_name, last_name, phone_number, password1, password2, data_entry)
+
+        if len(valid) > 0:
+            for error in valid:
+                form.add_error(error[0], error[1])
+                return self.form_invalid(form)
+
+        user = form.save()
+
+        # user.is_active = False
+        user.save()
+
+        return super(RegistrationView, self).form_valid(form)
+
+
+def page_not_found_view(request, exception):
+    return render(request, 'error.html', status=404)
+
 
 class BookAPIListPagination(PageNumberPagination):
     page_size = 5
@@ -34,9 +431,9 @@ class BookAPIListPagination(PageNumberPagination):
     max_page_size = 100
 
 
-# Чтение записей по категории
+# Reading elements by category
 class BooksApiListCategoryView(ListAPIView):
-    queryset = BooksModel.objects.all()
+    queryset = cache.get_or_set('all_books', BooksModel.objects.all())
     serializer_class = BookSerializer
     pagination_class = BookAPIListPagination
 
@@ -46,9 +443,9 @@ class BooksApiListCategoryView(ListAPIView):
         return BooksModel.objects.filter(category=category)
 
 
-# Чтение записей
+# Reading element
 class BooksApiListAllView(ListAPIView):
-    queryset = BooksModel.objects.all()
+    queryset = cache.get_or_set('all_books', BooksModel.objects.all())
     serializer_class = BookSerializer
     # permission_classes = (IsAuthenticated,)
     pagination_class = BookAPIListPagination
@@ -57,9 +454,9 @@ class BooksApiListAllView(ListAPIView):
         return BooksModel.objects.all()
 
 
-# Чтение записи по ID
+# Reading the element by ID
 class BooksApiListIDView(RetrieveAPIView):
-    queryset = BooksModel.objects.all()
+    queryset = cache.get_or_set('all_books', BooksModel.objects.all())
     serializer_class = BookSerializer
 
     def get_queryset(self):
@@ -69,9 +466,9 @@ class BooksApiListIDView(RetrieveAPIView):
         return BooksModel.objects.filter(id_book=id)
 
 
-# Удаление записи
+# delete of record
 class BooksDestroyView(DestroyAPIView):
-    queryset = BooksModel.objects.all()
+    queryset = cache.get_or_set('all_books', BooksModel.objects.all())
     serializer_class = BookSerializer
     permission_classes = (IsAdminUser,)
 
@@ -93,9 +490,10 @@ class BooksDestroyView(DestroyAPIView):
         return Response({"post": f"Object {str(id)} is deleted"})
 
 
-# Обновление записи
+
+# Update of record
 class BooksApiUpdateView(UpdateAPIView):
-    queryset = BooksModel.objects.all()
+    queryset = cache.get_or_set('all_books', BooksModel.objects.all())
     serializer_class = BookSerializer
     permission_classes = (IsAdminUser, )
 
@@ -119,9 +517,9 @@ class BooksApiUpdateView(UpdateAPIView):
         return Response({'post': serializer.data})
 
 
-# Создание записи
+# Creation of a record
 class BooksCreateAPIView(CreateAPIView):
-    queryset = BooksModel.objects.all()
+    queryset = cache.get_or_set('all_books', BooksModel.objects.all())
     serializer_class = BookSerializer
     permission_classes = (IsAuthenticated,)
 
@@ -162,390 +560,5 @@ class BooksCreateAPIView(CreateAPIView):
 #
 #         return Response({"post": f"Object {str(pk)} is deleted"})
 
+#
 
-def FillingModel(request):
-    file = open('C:/Users/user/Desktop/projects/ReadCity/main/parsing/book_json.jsonlines', 'r',
-                encoding="utf-8").read().split('\n')
-    categorymodel = CategoryModel.objects.all()
-    booksmodel = BooksModel.objects.all()
-    for book_ in file:
-        book = json.loads(book_).items()
-        try:
-            for k, v in book:
-
-                if len(categorymodel.filter(subcategory1=v['subcategory1'],
-                                            subcategory2=v['subcategory2'])) == 0:
-                    categorymodel.create(subcategory1=v['subcategory1'],
-                                         subcategory2=v['subcategory2'])
-
-                category = categorymodel.filter(subcategory1=v['subcategory1'],
-                                                subcategory2=v['subcategory2'])
-
-                print('категории ', v['subcategory1'], v['subcategory2'])
-                if len(booksmodel.filter(title=v['title'], img=v['img'])) == 0:
-
-                    price = int(''.join([i for i in v['price'] if i in '0123456789']))
-                    booksmodel_created = booksmodel.create(title=v['title'], img=v['img'], price=price,
-                                                           info_txt=v['description'], author=v['author'])
-
-                    booksmodel_created.category.set(category)
-
-                    booksmodel_created.id_book = v['chars']['ID товара']
-                    try:
-                        booksmodel_created.ISBN = v['chars']['ISBN']
-                    except:
-                        booksmodel_created.ISBN = ""
-                    booksmodel_created.year_of_publishing = v['chars']['Год издания']
-                    booksmodel_created.num_page = v['chars']['Количество страниц']
-                    booksmodel_created.size = v['chars']['Размер']
-
-                    booksmodel_created.weight = v['chars']['Вес, г']
-                    print(v['chars']['Издательство'])
-                    booksmodel_created.publishing_house = v['chars']['Издательство']
-
-                    if 'Возрастные ограничения' in v['chars']:
-                        booksmodel_created.age_rest = v['chars']['Возрастные ограничения'][:-1]
-                    if 'Тип обложки' in v['chars']:
-                        booksmodel_created.cover_type = v['chars']['Тип обложки']
-
-                    if 'Издательский бренд' in v['chars']:
-                        booksmodel_created.publishing_brand = v['chars']['Издательский бренд']
-
-                    if 'Серия' in v['chars']:
-                        booksmodel_created.series = v['chars']['Серия']
-
-                    if 'Тираж' in v['chars']:
-                        booksmodel_created.circulation = v['chars']['Тираж']
-
-                    booksmodel_created.save()
-        except:
-            pass
-
-    return redirect('/')
-
-
-class MenuView(TemplateView):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        sub = {}
-
-        for cat in CategoryModel.objects.all():
-            sub[cat.subcategory1] = cat.sub_slugify1
-
-        context['cat'] = sub
-
-        return context
-
-
-class Context(ContextMixin):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        sub = {}
-
-        for cat in CategoryModel.objects.all():
-            sub[cat.subcategory1] = cat.sub_slugify1
-
-        context['cat'] = sub
-
-        return context
-
-class HomePageView(ListView, Context):
-    model = BooksModel
-
-    def get_queryset(self):
-        return BooksModel.objects.all().order_by('-id')[:6]
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        if not self.request.user.is_anonymous:
-            viewed = User.objects.get(email=self.request.user).viewed.all()
-            count_viewed = len(viewed)
-            if count_viewed <6:
-                context['viewed'] = viewed
-            else:
-                context['viewed'] = viewed[count_viewed-6:]
-        else:
-            context['viewed'] = None
-        return context
-
-
-class BookmarksView(ListView, Context):
-    model = User
-
-    def get_queryset(self):
-        self.get_user = self.model.objects.get(email=self.request.user.email)
-        return self.get_user.bookmarks.all()
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # context["num_books"] = len(self.bookmarks_profile)
-
-        numbers_products = len(self.get_user.bookmarks.all())
-        if numbers_products == 1:
-            end_numbers_products = _(" товар")
-        elif (4 >= numbers_products % 10 >= 2) and not (10 < numbers_products < 20):
-            end_numbers_products = _(" товара")
-        else:
-            end_numbers_products = _(" товаров")
-
-        context["num_books"] = str(numbers_products) + end_numbers_products
-        return context
-
-
-class BookView(ListView, Context):
-    template_name = 'book.html'
-    model = BooksModel
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        get_book = self.model.objects.get(id_book=self.kwargs['id'])
-        sub = {}
-
-        if not self.request.user.is_anonymous:
-            User.objects.get(email=self.request.user).viewed.add(get_book)
-
-        for cat in CategoryModel.objects.all():
-            sub[cat.subcategory1] = cat.sub_slugify1
-
-        context['cat'] = sub
-        context['book'] = get_book
-
-        property_book1 = {
-            "Переводчик": get_book.interpreter,
-            "ID": get_book.id_book,
-            "Издательство": get_book.publishing_house,
-            "Серия": get_book.series,
-            "Год публикации": get_book.year_of_publishing,
-
-        }
-        property_book2 = {
-            'Издательский бренд':get_book.publishing_brand,
-            "ISBN": get_book.ISBN,
-            "Количество страниц": get_book.num_page,
-            "Размер": get_book.size,
-            "Тип обложки": get_book.cover_type,
-            "Тираж": get_book.circulation,
-            "Вес": get_book.weight,
-            "Возрастное ограничение": get_book.age_rest,
-        }
-        context['property_book1'] = property_book1
-        context['property_book2'] = [property_book1, property_book2]
-        context['reviews'] = get_book.review.all()
-        return context
-
-    def get_queryset(self):
-        ran = random.randint(0, len(self.model.objects.all()) - 18)
-
-        return [
-            self.model.objects.all()[ran:ran + 6],
-            self.model.objects.all()[ran + 6: ran + 6 * 2],
-            self.model.objects.all()[ran + 6 * 2: ran + 6 * 3],
-        ]
-
-
-class AuthorizationView(LoginView, Context):
-    form_class = LoginUserForm
-
-    def get_success_url(self):
-        return reverse('home')
-
-
-def Logout(request):
-    logout(request)
-    return redirect('/')
-
-
-class LibraryView(ListView):
-    model = BooksModel
-    template_name = "library.html"
-    paginate_by = 16
-
-    def get_queryset(self):
-        category = CategoryModel.objects.filter(sub_slugify1=self.kwargs['book'])
-
-        if len(category) == 0:
-            category = CategoryModel.objects.all()
-
-        return BooksModel.objects.filter(category__in=category)
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        if self.kwargs['book'] != 'all':
-            context['category'] = CategoryModel.objects.filter(sub_slugify1=self.kwargs['book'])[0].subcategory1
-        else:
-            context['category'] = 'Все книги'
-
-        category_dict = {}
-        for cat in CategoryModel.objects.all():
-            category_dict[cat.subcategory1] = cat.sub_slugify1
-
-        context['cat'] = category_dict
-        return context
-
-
-def BookMarks(request, **kwargs):
-    book_add = BooksModel.objects.get(id_book=kwargs['book'])
-    user = User.objects.get(email=request.user.email)
-    if book_add not in user.bookmarks.all():
-        user.bookmarks.add(book_add)
-    else:
-        user.bookmarks.remove(book_add)
-    return redirect('/')
-
-
-def Basket(request, **kwargs):
-    book_add = BooksModel.objects.get(int_book=kwargs['id'])
-    user = User.objects.get(email=request.user.email)
-    if book_add not in user.basket.all():
-        user.basket.add(book_add)
-    else:
-        user.basket.remove(book_add)
-    return redirect('/')
-
-
-class SearchBookView(ListView, Context):
-    model = BooksModel
-    template_name = "library.html"
-
-    def get_queryset(self):
-        s = self.request.GET.get('s')
-        data = []
-        book = self.model.objects.filter(title__icontains=s)
-        author = self.model.objects.filter(author__contains=s)
-        category1 = CategoryModel.objects.filter(subcategory1__icontains=s)
-        category2 = CategoryModel.objects.filter(subcategory2__icontains=s)
-
-        for model in [book, author]:
-            for object in model:
-                data.append(object)
-
-        for object in category1:
-            for element in self.model.objects.filter(category=object):
-                data.append(element)
-
-        for object in category2:
-            for element in self.model.objects.filter(category=object):
-                data.append(element)
-        return data
-
-
-class BasketView(ListView, Context):
-    model = User
-
-    def get_queryset(self):
-        self.get_user = self.model.objects.get(email=self.request.user.email)
-        return self.get_user.basket.all()
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # context["num_books"] = len(self.bookmarks_profile)
-
-        numbers_products = len(self.get_user.basket.all())
-        if numbers_products == 1:
-            end_numbers_products = " товар"
-        elif (4 >= numbers_products % 10 >= 2) and not (10 < numbers_products < 20):
-            end_numbers_products = " товара"
-        else:
-            end_numbers_products = " товаров"
-
-        end_numbers_products = _(end_numbers_products)
-
-        context["num_books"] = str(numbers_products) + end_numbers_products
-        return context
-
-
-def storage_file(file, id):
-
-    with open(f'main/static/img/{id}.jpg', 'wb+') as new_file:
-        for chunk in file.chunks():
-         new_file.write(chunk)
-
-
-class CreateBooksView(FormView, Context):
-    form_class = CreateBooksForm
-    template_name = 'create_entry.html'
-    success_url = reverse_lazy('home')
-
-
-    def form_valid(self, form):
-
-        model_book = BooksModel()
-
-        model_book.title = form.cleaned_data['title']
-        model_book.author =  form.cleaned_data['author']
-
-        # !!!
-        try:
-            model_book.img_local = self.request.FILES['img_local']
-
-        except:
-            form.add_error('img_local', 'Загрузите фотографию')
-            return self.form_invalid(form)
-
-        model_book.price =  form.cleaned_data['price']
-        model_book.info_txt =  form.cleaned_data['info_txt']
-
-        cat = form.cleaned_data['cat'].split(' / ')
-
-        model_book.interpreter =  form.cleaned_data['interpreter']
-        model_book.publishing_house =  form.cleaned_data['publishing_house']
-        model_book.publishing_brand =  form.cleaned_data['publishing_brand']
-
-        model_book.id = BooksModel.objects.all().reverse()[0].id_book+1
-        model_book.series =  form.cleaned_data['series']
-        model_book.year_of_publishing = date.today().year
-        model_book.ISBN =  form.cleaned_data['ISBN']
-        model_book.num_page =  form.cleaned_data['num_page']
-        model_book.size =  form.cleaned_data['size']
-        model_book.cover_type =  form.cleaned_data['cover_type']
-        model_book.circulation =  form.cleaned_data['circulation']
-        model_book.weight =  form.cleaned_data['weight']
-        model_book.age_rest = form.cleaned_data['age_rest']
-
-        model_book.creator = User.objects.get(email = self.request.user.email)
-        # print(CategoryModel.objects.filter(subcategory1=cat[0], subcategory2=cat[1]))
-        model_book.category.set(CategoryModel.objects.filter(subcategory1=cat[0], subcategory2=cat[1]))
-
-        model_book.save()
-
-
-        return super().form_valid(form)
-
-
-class RegistrationView(FormView, Context):
-    form_class = CreateUserForm
-    template_name = 'registration/registration.html'
-    success_url = '/'
-
-    def emailConfirmation(self):
-        pass
-
-    def form_valid(self, form):
-        email = form.cleaned_data['email']
-        first_name = form.cleaned_data['first_name']
-        last_name = form.cleaned_data['last_name']
-        phone_number = form.cleaned_data['phone_number']
-        password1 = form.cleaned_data['password1']
-        password2 = form.cleaned_data['password2']
-        data_entry = form.cleaned_data['data_entry']
-
-        valid = Validation(email, first_name, last_name, phone_number, password1, password2, data_entry)
-
-        if len(valid) > 0:
-            for error in valid:
-                form.add_error(error[0], error[1])
-                return self.form_invalid(form)
-
-        user = form.save()
-
-        # user.is_active = False
-        user.save()
-
-        return super(RegistrationView, self).form_valid(form)
-
-
-def page_not_found_view(request, exception):
-    return render(request, 'error.html', status=404)

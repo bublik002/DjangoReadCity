@@ -48,7 +48,6 @@
     
 }
 .btn{
-    background-color:#26a9e0;
     color:aliceblue;
 }
 .btn-left{
@@ -59,8 +58,7 @@
     width: 3vw;
     height: 3vw;
     font-size: 2vw;
-    background-color:#e9f6fc;
-    color:#26a9e0;
+
 
 }
 
@@ -159,3 +157,5 @@
     width: 30vw;
     margin-top: 1vw;
 }
+
+

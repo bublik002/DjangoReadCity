@@ -2,20 +2,23 @@
 <html lang="en">
 <head>
 
-    <title>Книга</title>
+    <title>{{book.title}}</title>
     {% load static %}
-{% load i18n %}
+    {% load i18n %}
+    {% load cache %}
     {% include 'includes/settings.html' %}
     <link rel="stylesheet" href="{% static 'css/book.css' %}">
 
 </head>
 
-<body>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
     {% include 'includes/menu.html' %}
-    <div class="Indent" style="margin:4vw 0;">
+
+    {% cache 600 book_page book.id_book LANGUAGE_CODE %}
+    <div class="Indent" style="margin:4vw 0;" id="book-{{book.id_book}}">
         <div class="den">
             <h4 >{{book.title}}</h4>
-            <a class="link">{{book.author}}</a>
+            <a class="link" >{{book.author}}</a>
         </div>
 
         <div class="ratings-reviews">
@@ -75,18 +78,17 @@
             <div class="col col-3" style="padding:0; ">
                 <div class='purchase-div'>
                     <p class="price-p">{{book.price}} Р</p>
-
+                    {% endcache %}
                     <div class="buttons row" style="--bs-gutter-x: 0;">
-                        <button class="btn btn-left col-8">
-                            {% trans "КУПИТЬ" %}
-                            </button>
-                        <button class="btn btn-right col-1"> <i class="fa fa-bookmark-o " aria-hidden="true"></i> </button>
+                        {% include 'includes/basket_buttons.html' %}
                     </div>
 
+                    {% cache 600 book_end book.id_book LANGUAGE_CODE%}
                     <p class="availability">
                         <i class="fa fa-check" aria-hidden="true"></i>
                         {% trans "В наличии" %}
                          </p>
+
 
                     <div class="dropdown">
                         <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -196,48 +198,30 @@
 
         </div>
     </div>
+    {% endcache %}
 
     <div class="books-container container-fluid" >
         <h1 class="h-books" style="padding-left:5vw;">
-            {% trans "ДРУГИЕ КНИГИ" %}
+            {% trans "ПОХОЖИЕ" %}
 
         </h1>
 
-        {% for books in object_list %}
+
         <div class="row books-cards">
-            {% for book in books %}
-            <div class="card col col-xl-2 col-lg-4 col-md-6 col-12 book-card">
-                <a href="/book/{{book.slug_title}}"  class="a-image-book">
-                {% if book.img == "" %}
-                    <img src={{book.img_local.url}} class="card-img-top image-book">
-                {% else %}
-                    <img src={{book.img}} class="card-img-top image-book">
-                {% endif %}
-
-                </a>
-
-                <div class="card-body">
-                    <div style="height:12vw">
-                        <h5 class="card-title text-danger">{{book.price}} ₽</h5>
-                        <a class="card-subtitle mb-2 name-book-a" href="/book/{{book.slug_title}}">{{book.title|truncatechars:50}}</a>
-                        <a class="cart-text text-secondary author-book-a" href="#">{{book.author}}</a>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <a href="#" class="card-link btn btn-primary button-basket ">Купить</a>
-                        <a href="bookmark/{{book.slug_title}}" class="card-link btn btn-primary button-fav"><i class="bi bi-bookmarks"></i></a>
-                    </div>
-                </div>
+            {% for book in object_list %}
+            <div id="book-{{book.id_book}}" class="card col col-xl-2 col-lg-4 col-md-6 col-12 book-card" >
+                {% include 'includes/books.html' %}
             </div>
             {% endfor %}
         </div>
 
-        <hr noshade="" size="2" style="margin: 0 5vw">
-
-        {% endfor %}
 
 
     </div>
 
 
-    {% include 'includes/footer.html' %}
+{% include 'includes/footer.html' %}
+
 </body>
+</html>
+

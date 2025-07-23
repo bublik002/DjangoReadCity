@@ -15,19 +15,16 @@
 
     {% include 'includes/menu.html' %}
 
-    <div style="margin-top:2vw" class="row content-basket Indent">
+    <div style="margin-top:2vw" class="row content-basket Indent" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
         <div class="col-8">
             <div class="bookmarks-header ">
 
                 <div class="d-flex">
                     <h1>КОРЗИНА</h1>
-                    <span >14 товаров</span>
+                    <span >{{num_books}}</span>
                 </div>
 
-                <a href="#">
-                    <i class="fa fa-trash-o" style="margin-right: 5px;" aria-hidden="true"></i>
 
-                    Удалить всё</a>
 
         
             </div>
@@ -40,11 +37,10 @@
                 </h5>
 
                 {% for book in object_list %}
-
-                <div class="books-basket">
+                <div class="books-basket" id="book-{{book.id_book}}">
                     <div class="book-info-basket">
                         <div class="book-info-basket-left">
-                            <a href="#" class="img-basket-a">
+                            <a href="{% url 'book' book.id_book %}" class="img-basket-a">
                                 {% if book.img == "" %}
                                     <img src={{book.img_local.url}}>
                                 {% else %}
@@ -53,8 +49,8 @@
                             </a>
 
                             <div style="margin-left: 1vw;">
-                                <h6>{{book.title}}</h6>
-                                <span>{{book.author}}</span>
+                                <a href="{% url 'book' book.id_book %}">{{book.title}}</a>
+                                <a href="{% url 'search' %}?s={{book.author}}">{{book.author}}</a>
                             </div>
                         </div>
 
@@ -62,116 +58,39 @@
                             <h5 class="text-danger">{{book.price}} ₽</h5>
 
                             <div class="buttons-basket">
-                                <a href="#" class="card-link btn btn-primary button-fav" ><i style="margin:auto" class="bi bi-bookmarks"></i></a>
-                                <a href="#" class="card-link btn btn-primary button-fav">   
+                                <button type="submit"
+                                        {% if book in bookmarks %}
+                                        hx-swap="outerHTML"
+                                        hx-post="{% url 'delete_bookmark' book.id_book %}"
+                                        {% else %}
+
+                                        hx-target="#book-{{book.id_book}}"
+                                        hx-swap="beforeend"
+                                        hx-post="{% url 'add_bookmark' book.id_book %}"
+                                        {% endif %}
+                                        class="card-link btn btn-primary button-fav"><i style="margin:auto"
+                                                                                        class="bi bi-bookmarks"></i>
+                                </button>
+
+
+                                <button
+                                        hx-target="#book-{{book.id_book}}"
+                                        hx-swap="outerHTML"
+                                        hx-post="{% url 'basket_delete' book.id_book %}"
+                                        class="card-link btn btn-primary button-fav">
                                     <i style="margin:auto" class="fa fa-trash-o" aria-hidden="true"></i>
 
-                                </a>
+                                </button>
                             </div>
 
                         </div>
                     </div>
-        
+
                 </div>
 
-                <hr noshade  size="2">
 
                 {% endfor %}
-                <div class="books-basket">
-                    <div class="book-info-basket">
-                        <div class="book-info-basket-left">
-                            <a href="#">
-                                <img src="https://content.img-gorod.ru/pim/products/images/45/6e/018fa22f-3bca-7c2d-8493-78d509c1456e.jpg?width=92&height=138&fit=bounds">
-                            </a>
 
-                            <div style="margin-left: 1vw;">
-                                <h6>Падение</h6>
-                                <span>Альбер Камю</span>
-                            </div>
-                        </div>
-
-                        <div class="book-info-basket-right">
-                            <h5 class="text-danger">500₽</h5>
-
-                            <div class="buttons-basket">
-                                <a href="#" class="card-link btn btn-primary button-fav" ><i style="margin:auto" class="bi bi-bookmarks"></i></a>
-                                <a href="#" class="card-link btn btn-primary button-fav">
-                                    <i style="margin:auto" class="fa fa-trash-o" aria-hidden="true"></i>
-                                </a>
-                            </div>
-
-                        </div>
-                    </div>
-
-                </div>
-
-                <hr noshade  size="2">
-
-                <div class="books-basket">
-                    <div class="book-info-basket">
-                        <div class="book-info-basket-left">
-                            <a href="#">
-                                <img src="https://content.img-gorod.ru/pim/products/images/45/6e/018fa22f-3bca-7c2d-8493-78d509c1456e.jpg?width=92&height=138&fit=bounds">
-                            </a>
-
-                            <div style="margin-left: 1vw;">
-                                <h6>Падение</h6>
-                                <span>Альбер Камю</span>
-                            </div>
-                        </div>
-
-                        <div class="book-info-basket-right">
-                            <h5 class="text-danger">500₽</h5>
-
-                            <div class="buttons-basket">
-                                <a href="#" class="card-link btn btn-primary button-fav" ><i style="margin:auto" class="bi bi-bookmarks"></i></a>
-                                <a href="#" class="card-link btn btn-primary button-fav">
-                                    <i style="margin:auto" class="fa fa-trash-o" aria-hidden="true"></i>
-                                </a>
-                            </div>
-
-                        </div>
-                    </div>
-
-
-
-
-
-                </div>
-
-                <hr noshade  size="2">
-
-                <div class="books-basket">
-                    <div class="book-info-basket">
-                        <div class="book-info-basket-left">
-                            <a href="#">
-                                <img src="https://content.img-gorod.ru/pim/products/images/45/6e/018fa22f-3bca-7c2d-8493-78d509c1456e.jpg?width=92&height=138&fit=bounds">
-                            </a>
-
-                            <div style="margin-left: 1vw;">
-                                <h6>Падение</h6>
-                                <span>Альбер Камю</span>
-                            </div>
-                        </div>
-
-                        <div class="book-info-basket-right">
-                            <h5 class="text-danger">500₽</h5>
-
-                            <div class="buttons-basket">
-                                <a href="#" class="card-link btn btn-primary button-fav" ><i style="margin:auto" class="bi bi-bookmarks"></i></a>
-                                <a href="#" class="card-link btn btn-primary button-fav">
-                                    <i style="margin:auto" class="fa fa-trash-o" aria-hidden="true"></i>
-                                </a>
-                            </div>
-
-                        </div>
-                    </div>
-
-
-
-
-
-                </div>
         
         
             </div>

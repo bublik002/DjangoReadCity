@@ -3,6 +3,7 @@
 <head>
     {% load static %}
     {% load i18n %}
+    {% load cache %}
     {% include 'includes/settings.html' %}
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <title>{% trans "Читай-город  — интернет-магазин книг" %} </title>
@@ -10,10 +11,10 @@
 
 
 </head>
-<body>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' id="main-book">
 
     {% include 'includes/menu.html' %}
-
+    {% cache 600 home_page_start %}
     <div class="rec-header d-xl-flex justify-content-xl-around justify-content-lg-center Indent">
         <div id="carouselExampleIndicators"  class="carousel slide rec" data-bs-ride="carousel">
             <div class="carousel-indicators">
@@ -83,6 +84,8 @@
         </div>
     </div>
 
+    {% endcache %}
+
     <div class="books-container container-fluid" >
         <h1 class="h-books">
             {% trans "НОВИНКИ ЛИТЕРАТУРЫ" %}
@@ -91,33 +94,15 @@
 
         <div class="row books-cards">
             {% for book in object_list %}
-            <div class="card col col-xl-2 col-lg-4 col-md-6 col-12 book-card">
-                <a href="/book/{{book.id_book}}"  class="a-image-book">
 
-                    {% if book.img == "" %}
-                        <img src={{book.img_local.url}} class="card-img-top image-book">
-                    {% else %}
-                        <img src={{book.img}} class="card-img-top image-book">
-                    {% endif %}
-
-                </a>
-
-                <div class="card-body">
-                    <div style="height:12vw">
-                        <h5 class="card-title text-danger">{{book.price}} ₽</h5>
-                        <a class="card-subtitle mb-2 name-book-a" href="/book/{{book.slug_title}}">{{book.title|truncatechars:50}}</a>
-                        <a class="cart-text text-secondary author-book-a" href="#">{{book.author}}</a>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <a href="basket/{{book.slug_title}}" class="card-link btn btn-primary button-basket ">
-                            {% trans "Купить" %}
-                        </a>
-                        <a href="bookmark/{{book.slug_title}}" class="card-link btn btn-primary button-fav"><i class="bi bi-bookmarks"></i></a>
-                    </div>
-                </div>
+            <div id="book-{{book.id_book}}" class="card col col-xl-2 col-lg-4 col-md-6 col-12 book-card">
+                {% include 'includes/books.html' %}
             </div>
+
             {% endfor %}
         </div>
+
+
 
         {% if not request.user.is_anonymous %}
         <h1 class="h-books">
@@ -126,39 +111,21 @@
         </h1>
         <div class="row books-cards">
             {% for book in viewed %}
-            <div class="card col col-xl-2 col-lg-4 col-md-6 col-12 book-card">
-                <a href="/book/{{book.id_book}}"  class="a-image-book">
-                    {% if book.img == "" %}
-                        <img src={{book.img_local.url}} class="card-img-top image-book">
-                    {% else %}
-                        <img src={{book.img}} class="card-img-top image-book">
-                    {% endif %}
 
-                </a>
-
-                <div class="card-body">
-
-                    <div style="height:12vw">
-                        <h5 class="card-title text-danger">{{book.price}} ₽</h5>
-                        <a class="card-subtitle mb-2 name-book-a" href="/book/{{book.slug_title}}">{{book.title|truncatechars:50}}</a>
-                        <a class="cart-text text-secondary author-book-a" href="#">{{book.author}}</a>
-                    </div>
-                    <div class="d-flex justify-content-between">
-                        <a href="basket/{{book.slug_title}}" class="card-link btn btn-primary button-basket ">{% trans "Купить" %}</a>
-                        <a href="bookmark/{{book.slug_title}}" class="card-link btn btn-primary button-fav"><i class="bi bi-bookmarks"></i></a>
-                    </div>
-
-                </div>
+            <div id="book-{{book.id_book}}" class="card col col-xl-2 col-lg-4 col-md-6 col-12 book-card">
+            {% include 'includes/books.html' %}
             </div>
+
             {% endfor %}
         </div>
 
         {% endif %}
     </div>
 
-
+    {% cache 600 home_end LANGUAGE_CODE %}
     <div class="other">
         <h2 class="h-other">
+
             {% trans "ЧИТАЙ-ЖУРНАЛ" %}
             </h2>
         <div class="row other-cards">
@@ -211,7 +178,8 @@
 
         </div>
     </div>
-
+    {% endcache %}
     {% include 'includes/footer.html' %}
+
 </body>
 </html>

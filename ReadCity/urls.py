@@ -19,9 +19,15 @@ from debug_toolbar.toolbar import debug_toolbar_urls
 from django.conf.urls.i18n import i18n_patterns
 handler404 = "main.views.page_not_found_view"
 
+from django.contrib import admin
+from django.urls import path, include
+from main.views import verify
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('rosetta/', include('rosetta.urls')),
+    path('verify/<uuid>', verify, name='verify'),
 
 ] + debug_toolbar_urls()
 

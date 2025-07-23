@@ -1,13 +1,15 @@
 from __future__ import unicode_literals
+import uuid
 from pytils.translit import slugify
 from django.db import models
-from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.utils.translation import gettext_lazy as _
 from django.contrib.auth.base_user import BaseUserManager
 from googletrans import Translator, constants
-from pprint import pprint
+from datetime import timedelta
+from django.utils import timezone
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -17,7 +19,7 @@ class UserManager(BaseUserManager):
         Создает и сохраняет пользователя с введенным им email и паролем.
         """
         if not email:
-            raise ValueError('email должен быть указан')
+            raise ValueError('Вы не указали почту!')
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -30,8 +32,9 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email, password, **extra_fields):
         extra_fields.setdefault('is_superuser', True)
-        extra_fields.setdefault('is_stuff', True)
-        if extra_fields.get('is_superuser') is not True:
+        extra_fields.setdefault('is_staff', True)
+
+        if extra_fields.get('is_superuser') is False:
             raise ValueError('Superuser must have is_superuser=True.')
 
         return self._create_user(email, password, **extra_fields)
@@ -84,24 +87,24 @@ class BooksModel(models.Model):
     category = models.ManyToManyField(CategoryModel)
 
     interpreter = models.CharField(blank=True, max_length=100)
-    id_book = models.IntegerField(null=True, blank=True, db_index=True)  # id
+    id_book = models.IntegerField(null=True, blank=True, db_index=True)
     publishing_house = models.CharField(blank=True, max_length=100)
     publishing_brand = models.CharField(blank=True, max_length=100)
-    series = models.CharField(max_length=100, blank=True)  # Серия
-    year_of_publishing = models.IntegerField(blank=True, null=True)  # год публикации
+    series = models.CharField(max_length=100, blank=True)
+    year_of_publishing = models.IntegerField(blank=True, null=True)
     ISBN = models.CharField(max_length=100, blank=True)
-    num_page = models.IntegerField(blank=True)  # количество страниц
-    size = models.CharField(max_length=100)  # размер
-    cover_type = models.CharField(max_length=100)  # Тип обложки
-    circulation = models.IntegerField(blank=True, null=True)  # тираж
-    weight = models.IntegerField(blank=True)  # вес
+    num_page = models.IntegerField(blank=True)
+    size = models.CharField(max_length=100)
+    cover_type = models.CharField(max_length=100)
+    circulation = models.IntegerField(blank=True, null=True)
+    weight = models.IntegerField(blank=True)
 
     publishing = models.BooleanField(default=False)
 
     age_rest = models.CharField(choices=(('1', 'Нет'), ('2', '6+'), ('3', '12+'), ('4', '16+'), ('5', '18+') ), default='1', blank=True)
-    # age_rest = models.IntegerField(blank=True, null=True)  # возрастные ограничения
+    # age_rest = models.IntegerField(blank=True, null=True)
 
-    creator = models.ForeignKey('User', on_delete=models.CASCADE)
+    creator = models.ForeignKey('User', on_delete=models.CASCADE, related_name="creator_book")
 
     def save(self, *args, **kwargs):
         self.slug_title = slugify(self.title)
@@ -113,25 +116,31 @@ class BooksModel(models.Model):
         return self.title
 
 
-# f4beKE9-Kaw sscorpionmuz969@gmail.com
+
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email'), unique=True)
     first_name = models.CharField(_('name'), max_length=30, blank=True)
     last_name = models.CharField(_('surname'), max_length=30, blank=True)
     date_joined = models.DateTimeField(_('registered'), auto_now_add=True)
-    is_active = models.BooleanField(_('is_active'), default=True)  # Активный пользователь
-    is_staff = models.BooleanField('is_stuff', default=True)  # Может войти в admin login
+    is_active = models.BooleanField(_('is_active'), default=True)
+    is_staff = models.BooleanField('is_staff', default=True)  # admin login
+    is_superuser = models.BooleanField(default=False)
     phone_number = models.CharField(max_length=12, default='77777777777')
 
     seller = models.BooleanField(default=False)
 
-    bookmarks = models.ManyToManyField(BooksModel, blank=True, related_name='bookmarks')
+    is_verified = models.BooleanField('verified', default=False)
+    verification_uuid = models.UUIDField('Unique Verification UUID',    default=uuid.uuid4,
+    unique=True,
+    editable=False)
+
+    bookmarks = models.ManyToManyField(BooksModel, blank=True, related_name='bookmarks', )
     basket = models.ManyToManyField(BooksModel, blank=True, related_name='basket')
     objects = UserManager()
 
-    viewed = models.ManyToManyField(BooksModel, blank=True, related_name='viewed', max_length=50)
+    products = models.ForeignKey(BooksModel,null=True, blank=True, on_delete=models.CASCADE)
 
-    USERNAME_FIELD = 'email'  # Авторизация по email
+    USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
     class Meta:
@@ -139,20 +148,23 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _('users')
 
     def get_full_name(self):
-        '''
-        Возвращает first_name и last_name с пробелом между ними.
-        '''
         full_name = '%s %s' % (self.first_name, self.last_name)
         return full_name.strip()
 
     def get_short_name(self):
-        '''
-        Возвращает сокращенное имя пользователя.
-        '''
+
         return self.first_name
 
-    def email_user(self, subject, message, from_email=None, **kwargs):
-        '''
-        Отправляет электронное письмо этому пользователю.
-        '''
-        send_mail(subject, message, from_email, [self.email], **kwargs)
+
+
+class ViewedModel(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='user_viewed')
+    book = models.ForeignKey('BooksModel', on_delete=models.CASCADE,related_name='book_viewed', blank=True, null=True)
+    date_viewed = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date_viewed']
+
+    def save(self, *args, **kwargs):
+        super(ViewedModel, self).save(*args, **kwargs)
+

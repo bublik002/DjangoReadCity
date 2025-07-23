@@ -1,5 +1,7 @@
+{% load cache %}
 
 {% load i18n %}
+{% cache 10 start_menu LANGUAGE_CODE %}
 <nav class="d-xl-block navbar navbar-expand-xl header-top-bar Indent " >
     <div class="container-fluid">
         <button class="navbar-toggler button-nav-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Переключатель навигации">
@@ -21,12 +23,12 @@
                         </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-light " href="api">
+                    <a class="nav-link text-light " href="{% url 'api' %}">
                         {% trans "Для разработчиков" %}
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link text-light" href="create-entry">
+                    <a class="nav-link text-light" href="{% url 'create_entry' %}">
                         {% trans "Добавить товар" %}
                     </a>
                 </li>
@@ -42,12 +44,14 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link text-light" href="#">
-                        {% trans "Партнёрская программа" %}
+                    <a class="nav-link text-light" href="{% url 'my_products' %}">
+                        {% trans "Мои товары" %}
                     </a>
                 </li>
+                {% endcache %}
                 <li>
                     {% get_current_language as LANGUAGE_CODE %}
+
                     {% get_available_languages as LANGUAGES %}
                     {% get_language_info_list for LANGUAGES as languages %}
                     <div style="display:flex;">
@@ -61,7 +65,9 @@
                     </div>
                 </li>
 
+
             </ul>
+
             <ul class=" navbar-nav  ">
                 <li class="nav-item">
                     <a class="nav-link text-light " href="#">8 (800) 444-8-444 — {% trans "круглосуточно" %}</a>
@@ -70,30 +76,7 @@
                     <a class="nav-link text-light" href="#">{% trans "Обратная связь" %}</a>
                 </li>
             </ul>
-            <ul style="width:100vw;" class="navbar-nav navbar-nav-adap">
-            <li class="nav-item ">
-                <a class="nav-link link-nav-a" href="/login">
-                    <p>Дмитрий</p>
-                </a>
-            </li>
-            <li class="nav-item ">
-                <a class="nav-link link-nav-a" href="#">
-                    <p>{% trans "Заказы" as orders %}</p>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link link-nav-a  position-relative" href="#">
-                    <p>{{orders}}
-                    </p>
 
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link link-nav-a" href="#">
-                    <p>{% trans "Корзина" as basket %}</p>
-                </a>
-            </li>
-        </ul>
         </div>
 
     </div>
@@ -101,7 +84,7 @@
 
 
 <nav class="navbar navbar-expand  Indent nav-2 ">
-    <a class="navbar-brand" href="/">
+    <a class="navbar-brand" href="/{{LANGUAGE_CODE}}/">
         <svg width="85" height="24" viewBox="0 0 85 24" xmlns="http://www.w3.org/2000/svg" class="ic-nav ">
             <path d="M31.488 2.402l3.087 20.004 2.776-.009-3.074-19.989-2.789-.006z"></path>
             <path d="M31.359 2.402h-4.726v19.939h4.726V2.402z"></path>
@@ -129,9 +112,10 @@
 
             <ul class="dropdown-menu">
                 {% for key, value in cat.items  %}
-                <li><a class="dropdown-item" href="/library/{{value}}">{{ key }}</a></li>
+
+                <li><a class="dropdown-item" href="{% url 'library' value %}">{{ key }}</a></li>
                 {% endfor %}
-                <li><a class="dropdown-item" href="/library/all">
+                <li><a class="dropdown-item" href="{% url 'library' 'all' %}">
                     {% trans "Показать всё" %}
                     </a>
                 </li>
@@ -145,6 +129,7 @@
             <button type="submit" class="btn"><i class="bi bi-search"></i></button>
         </form>
 
+        {% cache 10 auth_user request.user.email LANGUAGE_CODE %}
         <ul class="navbar-nav">
             <li class="nav-item ">
                 {% if request.user.is_authenticated %}
@@ -177,18 +162,19 @@
 
             </li>
             <li class="nav-item">
-                <a class="nav-link link-nav-a" href="basket">
+                <a class="nav-link link-nav-a" href="{% url 'basket' %}">
                     <i class="bi bi-cart-fill"></i>
                     <p>{{basket}}</p>
                 </a>
             </li>
             {% endif %}
         </ul>
+        {% endcache %}
 
 
     </div>
 </nav>
-
+{% cache 10 end_menu LANGUAGE_CODE %}
 
 <div class="container-fluid Indent nav-3" >
     <div class="row collapse navbar-collapse d-flex justify-content-between" >
@@ -211,3 +197,4 @@
 
     </div>
 </div>
+{% endcache %}

@@ -1,4 +1,9 @@
+{% load cache %}
+{% cache 600 footer %}
+
+
 {% load i18n %}
+{% load static %}
 <footer>
         <div class="row footer-top">
             <div class="card col-xl-6 col-md-12">
@@ -107,3 +112,22 @@
 
         </div>
     </footer>
+
+<script src="https://unpkg.com/htmx.org@1.9.4"></script>
+<script src="{% static 'js/total.js' %}"></script>
+<script>
+    function cngElementsAtr(cls, atr, val){
+        var elems = document.getElementsByClassName(cls);
+        for(var i = 0; i < elems.length; i++) {
+            elems[i][atr] = val;
+        }
+    }
+    document.body.addEventListener('htmx:afterRequest', (event) => {
+        path_str = event.detail.pathInfo.requestPath;
+        if(path_str.includes('create_book')){
+            cngElementsAtr('clrtxt', 'value', '');
+        }
+    });
+</script>
+
+{% endcache %}

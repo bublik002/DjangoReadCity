@@ -10,10 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
-
-# bublik scorpionmuz969@gmail.com
-# d@gmail.com
-# 23catar23
 import os
 
 from pathlib import Path
@@ -34,8 +30,14 @@ SECRET_KEY = 'django-insecure-3=qco#w&8+#1#y9ru2-bya1mzr@4%2w&e3qi3k!ty(eg6@_7zu
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+# ALLOWED_HOSTS = ['127.0.0.1']
 
+# User.objects.create_superuser(
+#     email='admin@gmail.com',
+#     password='admin2',
+#     is_staff=True,  # Note correct spelling
+#     is_superuser=True
+# )
 # Application definition
 
 INSTALLED_APPS = [
@@ -102,9 +104,9 @@ DATABASES = {
 
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'ReadCityApp',
+        'NAME': 'readcityapp',
         'USER': 'postgres',
-        'PASSWORD': '1position1',
+        'PASSWORD': 'p0st+',
         'HOST': 'localhost',
         'PORT': '5432',
 
@@ -139,6 +141,21 @@ AUTH_PASSWORD_VALIDATORS = [
 #     ('ru', 'Russian'),
 # ]
 
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+        'LOCATION': '127.0.0.1:11211',
+    }
+}
+
+
+REDIS_HOST = '127.0.0.1'
+REDIS_PORT = '6379'
+BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
+CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+
 LANGUAGES = [
     ('ru', _('Russian')),
     ('en', _('English')),
@@ -149,6 +166,7 @@ LOCALE_PATHS = [
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'ru'
 MODELTRANSLATION_TRANSLATION_REGISTRY = 'main.translation'
 LANGUAGE_CODE = 'ru-RU'
+TRANSLATABLE_MODEL_MODULES = ['main.models']
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -171,8 +189,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = 'main'
 
-AUTH_USER_MODEL = 'main.User'
 
+AUTH_USER_MODEL = 'main.User'
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'PAGE_SIZE': 5,
@@ -198,12 +216,29 @@ CACHES = {
     }
 }
 
-DEFAULT_FROM_EMAIL = 'support@yoursite.ru'
-EMAIL_HOST = "smtp.yoursmtpserver.ru"
-EMAIL_PORT = 25
-EMAIL_HOST_USER = "user"
-EMAIL_HOST_PASSWORD = "pass"
+# EMAIL_USE_TLS = True
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_HOST_USER = 'readcity.app@gmail.com'
+# EMAIL_HOST_PASSWORD =""
+# EMAIL_PORT = 587
+
+
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = "readcity.app@gmail.com"
+EMAIL_HOST_PASSWORD = "efli sdbq bgmq ianz"  #(read-c'ty-0pp)
+
 
 MEDIA_ROOT = BASE_DIR / "main/static/img"
 MEDIA_URL = '/img/'
 
+# ALLOWED_HOSTS = 'localhost:8000'
+REDIS_HOST = '127.0.0.1'
+REDIS_PORT = '6379'
+BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
+CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+
+# admin0@gmail.com admin+
