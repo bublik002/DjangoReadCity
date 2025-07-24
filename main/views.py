@@ -25,30 +25,32 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, I
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from .forms import LoginUserForm, CreateUserForm, CreateBooksForm
-from .add_scripts import Validation, EndNumbersProduct
+from .add_scripts import validation
 from django.shortcuts import redirect
 from django.views.generic.base import ContextMixin
-
 from .serializers import *
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from .permission import *
 
 def delete_cache_keys():
+    categories = CategoryModel.objects.all()
     cache.delete('new_books_home')
     cache.delete('all_books')
 
-    for cat in CategoryModel.objects.all():
+    for cat in categories:
         cache.delete(f'cat_filter_{cat.subcategory1}')
 
-    for direction in ('ascend', 'descend'):
-        for filter in ( 'title', 'author', 'price'):
-            for cat_sort in CategoryModel.objects.all():
-                cache.delete(f'{direction}_{filter}_{cat_sort.subcategory1}_sort')
+    directions = ('ascend', 'descend')
+    filters = ('title', 'author', 'price')
+
+    for direction in directions:
+        for field in filters:
+            for cat in categories:
+                cache.delete(f'{direction}_{field}_{cat.subcategory1}_sort')
 
 
 
 class Context(ContextMixin):
+
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
@@ -69,8 +71,6 @@ class Context(ContextMixin):
         return context
 
 
-
-
 class HomePageView(ListView, Context):
     model = BooksModel
 
@@ -83,6 +83,7 @@ class HomePageView(ListView, Context):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         viewed = ViewedModel.objects.all()
+
         if not user.is_anonymous:
             get_user = User.objects.get(email=user.email)
             viewed = viewed.filter(user=get_user).select_related('book')
@@ -100,20 +101,9 @@ class HomePageView(ListView, Context):
 class BookmarksView(ListView, Context):
     model = User
 
-    def get_queryset(self):
-        return  self.request.user.bookmarks.all()
-
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        get_user = self.request.user
-        bookmarks = get_user.bookmarks.all()
-        numbers_products = len(bookmarks)
-        end_numbers_products = _(EndNumbersProduct(numbers_products))
-
         context['delete_book'] = True
-        # context['bookmarks'] = bookmarks
-        context["num_books"] = str(numbers_products) + end_numbers_products
-
         return context
 
 
@@ -175,17 +165,6 @@ class MyProductsView(ListView, Context):
         return self.model.objects.filter(creator=self.request.user)
 
 
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        if not self.request.user.is_anonymous:
-            numbers_products =len(self.model.objects.filter(creator=self.request.user))
-            end_numbers_products = _(EndNumbersProduct(numbers_products))
-
-            self.model.objects.filter(creator=self.request.user)
-            context["num_books"] = str(numbers_products) + end_numbers_products
-
-        return context
-
 
 class AuthorizationView(LoginView, Context):
     form_class = LoginUserForm
@@ -217,20 +196,16 @@ class LibraryView(ListView, Context):
 
     def get_queryset(self):
         category = cache.get_or_set('cat_filter_' + self.kwargs['book'], CategoryModel.objects.filter(sub_slugify1=self.kwargs['book']))
-        # category = CategoryModel.objects.filter(sub_slugify1=self.kwargs['book'])
+        books = cache.get_or_set('all_books', BooksModel.objects.all())
 
         if len(category) != 0:
-            return BooksModel.objects.filter(category__in=category)
+            return books.filter(category__in=category)
 
-        return cache.get_or_set('all_books',BooksModel.objects.all())
+        return books
 
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # if not self.request.user.is_anonymous:
-        #     get_user = self.request.user
-            # context['bookmarks'] = get_user.bookmarks.all()
 
         if self.kwargs['book'] != 'all':
             context['category'] = cache.get('cat_filter_'+self.kwargs['book'])[0].subcategory1
@@ -267,7 +242,6 @@ def book_marks_delete(request, id):
 
 @require_http_methods(['POST'])
 def book_marks_add(request, id):
-    print(12)
     book_add = BooksModel.objects.get(id_book=id)
     request.user.bookmarks.add(book_add)
     return HttpResponse('<div></div>')
@@ -318,22 +292,7 @@ class SearchBookView(ListView, Context):
         ).distinct()
 
 class BasketView(ListView, Context):
-    model = User
-
-
-    def get_queryset(self):
-        return self.request.user.basket.all()
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-        # context["num_books"] = len(self.bookmarks_profile)
-
-        numbers_products = len(user.basket.all())
-        end_numbers_products = _(EndNumbersProduct(numbers_products))
-        context['bookmarks'] = user.bookmarks.all()
-        context["num_books"] = str(numbers_products) + end_numbers_products
-        return context
+    model = BooksModel
 
 
 class CreateBooksView(FormView, Context):
@@ -349,7 +308,6 @@ class CreateBooksView(FormView, Context):
         model_book.title = form.cleaned_data['title']
         model_book.author =  form.cleaned_data['author']
 
-        # !!!
         try:
             model_book.img_local = self.request.FILES['img_local']
 
@@ -406,7 +364,7 @@ class RegistrationView(FormView, Context):
         password2 = form.cleaned_data['password2']
         data_entry = form.cleaned_data['data_entry']
 
-        valid = Validation(email, first_name, last_name, phone_number, password1, password2, data_entry)
+        valid = validation(email, first_name, last_name, phone_number, password1, password2, data_entry)
 
         if len(valid) > 0:
             for error in valid:
@@ -414,8 +372,6 @@ class RegistrationView(FormView, Context):
                 return self.form_invalid(form)
 
         user = form.save()
-
-        # user.is_active = False
         user.save()
 
         return super(RegistrationView, self).form_valid(form)
@@ -523,42 +479,5 @@ class BooksCreateAPIView(CreateAPIView):
     serializer_class = BookSerializer
     permission_classes = (IsAuthenticated,)
 
-# # ModelViewSet.list().retrieve().create().update().partial_update().destroy()
-# # Объединяет в себе ListCreateAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView и др
-# class BookViewSet(ModelViewSet):
-#     queryset = BooksModel.objects.all()
-#     serializer_class = BookSerializer
-#     permission_classes = (IsAdminOrReadOnly,)
-#
-#     def get_queryset(self):
-#         return BooksModel.objects.all()[:5]
 
-
-# class BookApiView(APIView):
-#     def get(self, requests):
-#         lst = BooksModel.objects.all()
-#         return Response({'get': BookSerializer(lst, many=True).data})
-#
-#     def post(self, request):
-#         serializer = CategorySerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         serializer.save()
-#         return Response({'post': serializer.data})
-#
-
-#
-#     def delete(self, request, *args, **kwargs):
-#         pk = kwargs.get('pk', None)
-#         if not pk:
-#             return Response({'error': "method PUT not allowed"})
-#
-#         try:
-#             instance = CategoryModel.objects.get(pk=pk)
-#             instance.delete()
-#         except Exception:
-#             return Response({'error': 'Objects does not exist'})
-#
-#         return Response({"post": f"Object {str(pk)} is deleted"})
-
-#
 

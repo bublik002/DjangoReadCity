@@ -1,14 +1,7 @@
 import re
 
 
-def EndNumbersProduct(count):
-    if count == 1:
-        return " товар"
-    elif (4 >= count % 10 >= 2) and not (10 < count < 20):
-        return " товара"
-    return " товаров"
-
-def Validation(email, first_name, last_name, phone_number, password1, password2, data_entry):
+def validation(email, first_name, last_name, phone_number, password1, password2, data_entry):
 
     errors = []
 

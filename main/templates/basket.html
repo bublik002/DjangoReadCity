@@ -21,7 +21,6 @@
 
                 <div class="d-flex">
                     <h1>КОРЗИНА</h1>
-                    <span >{{num_books}}</span>
                 </div>
 
 
@@ -36,7 +35,7 @@
                     Товары в наличии
                 </h5>
 
-                {% for book in object_list %}
+                {% for book in basket_books %}
                 <div class="books-basket" id="book-{{book.id_book}}">
                     <div class="book-info-basket">
                         <div class="book-info-basket-left">

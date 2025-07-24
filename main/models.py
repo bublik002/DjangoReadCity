@@ -127,7 +127,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     phone_number = models.CharField(max_length=12, default='77777777777')
 
-    seller = models.BooleanField(default=False)
+    seller = models.BooleanField(default=True)
 
     is_verified = models.BooleanField('verified', default=False)
     verification_uuid = models.UUIDField('Unique Verification UUID',    default=uuid.uuid4,

@@ -76,7 +76,7 @@
             <div class="books-container container-fluid">
 
                 <div class="row books-cards" id="book">
-                    {% for book in object_list %}
+                    {% for book in bookmarks %}
                     <div class="card col col-xl-3 col-lg-4 col-md-6 col-12 book-card" id="book-{{book.id_book}}">
                         {% include 'includes/books.html' %}
                     </div>
