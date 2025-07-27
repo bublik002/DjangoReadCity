@@ -1,29 +1,25 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.paginator import Paginator
-from django.http import HttpResponse, JsonResponse
+
+from django.http import HttpResponse
 from django.template.loader import render_to_string
-from rest_framework import generics, permissions
-from django.forms import model_to_dict
+
 from django.shortcuts import render
-from django.views.generic import FormView, ListView, CreateView
+from django.views.generic import FormView, ListView
 from django.views.decorators.http import require_http_methods
-from django.db.models import Q, QuerySet
-import json
+from django.db.models import Q
 from django.http import Http404
 from django.core.cache import cache
-from django.views.decorators.cache import cache_page
 from datetime import date
 from django.contrib.auth import logout
 from django.contrib.auth.views import LoginView
 from django.urls import reverse, reverse_lazy
 from django.views.generic.base import TemplateView, View
-from rest_framework.generics import ListCreateAPIView, UpdateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView, \
+from rest_framework.generics import UpdateAPIView, ListAPIView, \
     DestroyAPIView, RetrieveAPIView, CreateAPIView
-from django.utils.translation import gettext as _
+# from django.utils.translation import gettext as _
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAdminUser, IsAuthenticated
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.decorators import action
+from rest_framework.permissions import IsAdminUser, IsAuthenticated
+# from rest_framework.viewsets import ModelViewSet
+# from rest_framework.decorators import action
 from .forms import LoginUserForm, CreateUserForm, CreateBooksForm
 from .add_scripts import validation
 from django.shortcuts import redirect
